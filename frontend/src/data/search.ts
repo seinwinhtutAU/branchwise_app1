@@ -9,6 +9,9 @@ export interface SearchResult {
   path: string;
 }
 
+// label is always the human-readable match (customer/factory/product/route);
+// sublabel carries the internal reference number as secondary context — a
+// user should never need to know SO-/PO-/PK-/SH- codes to find something.
 function buildIndex(): SearchResult[] {
   const results: SearchResult[] = [];
 
@@ -17,8 +20,8 @@ function buildIndex(): SearchResult[] {
     results.push({
       group: "Orders",
       id: order.orderId,
-      label: order.orderNo,
-      sublabel: customer?.name ?? "",
+      label: customer?.name ?? "Unknown customer",
+      sublabel: order.orderNo,
       path: `/orders/${order.orderId}`,
     });
   }
@@ -29,7 +32,7 @@ function buildIndex(): SearchResult[] {
       id: customer.customerId,
       label: customer.name,
       sublabel: customer.address ?? "",
-      path: `/customers`,
+      path: `/customers/${customer.customerId}`,
     });
   }
 
@@ -39,7 +42,7 @@ function buildIndex(): SearchResult[] {
       id: product.productId,
       label: product.name,
       sublabel: product.productCode,
-      path: `/products`,
+      path: `/products/${product.productId}`,
     });
   }
 
@@ -48,19 +51,19 @@ function buildIndex(): SearchResult[] {
     results.push({
       group: "Purchases",
       id: purchase.purchaseId,
-      label: purchase.purchaseNo,
-      sublabel: factory?.name ?? "",
+      label: factory?.name ?? "Unknown factory",
+      sublabel: purchase.purchaseNo,
       path: `/purchases/${purchase.purchaseId}`,
     });
   }
 
   for (const pkg of fx.packages) {
-    const purchaseNos = Array.from(new Set(sel.getPackageItemDetails(pkg.packageId).map((d) => d.purchase.purchaseNo)));
+    const customerNames = Array.from(new Set(sel.getPackageItemDetails(pkg.packageId).map((d) => d.customer.name)));
     results.push({
       group: "Packages",
       id: pkg.packageId,
-      label: pkg.packageNo,
-      sublabel: purchaseNos.length > 0 ? `From ${purchaseNos.join(", ")}` : "",
+      label: customerNames.length > 0 ? customerNames.join(", ") : "Empty package",
+      sublabel: pkg.packageNo,
       path: `/packages/${pkg.packageId}`,
     });
   }
@@ -69,8 +72,8 @@ function buildIndex(): SearchResult[] {
     results.push({
       group: "Shipments",
       id: shipment.shipmentId,
-      label: shipment.shipmentNo,
-      sublabel: `${shipment.origin} → ${shipment.destination}`,
+      label: `${shipment.origin} → ${shipment.destination}`,
+      sublabel: shipment.shipmentNo,
       path: `/shipments/${shipment.shipmentId}`,
     });
   }

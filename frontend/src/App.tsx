@@ -7,6 +7,7 @@ import { RequireAuth } from "@/layout/RequireAuth";
 import { isSupabaseConfigured } from "@/constants/config";
 import { useAuthStore } from "@/store/authStore";
 import { LoginPage } from "@/pages/auth/LoginPage";
+import { CustomerDetailPage } from "@/pages/customers/CustomerDetailPage";
 import { CustomersListPage } from "@/pages/customers/CustomersListPage";
 import { DashboardPage } from "@/pages/dashboard/DashboardPage";
 import { DeliveriesListPage } from "@/pages/deliveries/DeliveriesListPage";
@@ -17,6 +18,7 @@ import { OrderDetailPage } from "@/pages/orders/OrderDetailPage";
 import { OrdersListPage } from "@/pages/orders/OrdersListPage";
 import { PackageDetailPage } from "@/pages/packages/PackageDetailPage";
 import { PackagesListPage } from "@/pages/packages/PackagesListPage";
+import { ProductDetailPage } from "@/pages/products/ProductDetailPage";
 import { ProductsListPage } from "@/pages/products/ProductsListPage";
 import { PurchaseDetailPage } from "@/pages/purchases/PurchaseDetailPage";
 import { PurchasesListPage } from "@/pages/purchases/PurchasesListPage";
@@ -57,6 +59,7 @@ export function App() {
           <Route path="/orders" element={<OrdersListPage />} />
           <Route path="/orders/:orderId" element={<OrderDetailPage />} />
           <Route path="/customers" element={<CustomersListPage />} />
+          <Route path="/customers/:customerId" element={<CustomerDetailPage />} />
 
           <Route path="/purchases" element={<PurchasesListPage />} />
           <Route path="/purchases/:purchaseId" element={<PurchaseDetailPage />} />
@@ -76,6 +79,7 @@ export function App() {
           <Route path="/deliveries/:deliveryId" element={<DeliveryDetailPage />} />
 
           <Route path="/products" element={<ProductsListPage />} />
+          <Route path="/products/:productId" element={<ProductDetailPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
 

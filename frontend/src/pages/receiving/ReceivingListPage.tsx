@@ -29,16 +29,26 @@ export function ReceivingListPage() {
 
   const columns: DataTableColumn<ReceivingListRow>[] = [
     {
-      id: "receivingId",
-      header: "Receiving",
-      cell: (r) => <span className="font-medium text-neutral-800">{r.receiving.receivingId}</span>,
+      id: "warehouse",
+      header: "Warehouse",
+      cell: (r) => (
+        <div>
+          <p className="font-medium text-neutral-800">{r.warehouse.name}</p>
+          <p className="text-xs text-neutral-400">{r.receiving.receivingId}</p>
+        </div>
+      ),
     },
     {
       id: "shipment",
-      header: "Shipment",
-      cell: (r) => <EntityLink to={`/shipments/${r.shipment.shipmentId}`} label={r.shipment.shipmentNo} />,
+      header: "From Shipment",
+      cell: (r) => (
+        <EntityLink
+          to={`/shipments/${r.shipment.shipmentId}`}
+          label={`${r.shipment.origin} → ${r.shipment.destination}`}
+          sublabel={r.shipment.shipmentNo}
+        />
+      ),
     },
-    { id: "warehouse", header: "Warehouse", cell: (r) => r.warehouse.name },
     { id: "products", header: "Products", cell: (r) => `${r.productCount} products` },
     { id: "status", header: "Status", sortable: true, cell: (r) => <StatusBadge status={r.receiving.status} /> },
     { id: "receivedDate", header: "Received", sortable: true, cell: (r) => formatDate(r.receiving.receivedDate) },

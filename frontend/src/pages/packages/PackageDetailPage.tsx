@@ -23,19 +23,28 @@ export function PackageDetailPage() {
 
   const { pkg, purchases, items, shipment } = data;
 
+  const customerNames = Array.from(new Set(items.map((i) => i.customer.name)));
+  const title =
+    customerNames.length === 0
+      ? "Empty package"
+      : customerNames.length <= 2
+        ? customerNames.join(" & ")
+        : `${customerNames[0]} & ${customerNames.length - 1} more`;
+  const subtitle =
+    purchases.length === 0
+      ? "No items packed yet"
+      : purchases.length === 1
+        ? `From purchase ${purchases[0].purchaseNo}`
+        : `From ${purchases.length} purchases`;
+
   return (
     <div className="max-w-3xl">
       <DetailHeader
         backTo="/packages"
         backLabel="Packages"
-        title={pkg.packageNo}
-        subtitle={
-          purchases.length === 0
-            ? "No items packed yet"
-            : purchases.length === 1
-              ? `From purchase ${purchases[0].purchaseNo}`
-              : `From ${purchases.length} purchases`
-        }
+        title={title}
+        code={pkg.packageNo}
+        subtitle={subtitle}
         status={<StatusBadge status={pkg.status} />}
       />
 
@@ -61,7 +70,10 @@ export function PackageDetailPage() {
             <tbody>
               {items.map((row) => (
                 <tr key={row.packageItemId} className="border-b border-neutral-100 last:border-0">
-                  <td className="px-4 py-2.5 font-medium text-neutral-800">{row.product.name}</td>
+                  <td className="px-4 py-2.5">
+                    <p className="font-medium text-neutral-800">{row.product.name}</p>
+                    {row.variant.color && <p className="text-xs text-neutral-400">{row.variant.color}</p>}
+                  </td>
                   <td className="px-4 py-2.5">
                     <EntityLink to={`/purchases/${row.purchase.purchaseId}`} label={row.purchase.purchaseNo} />
                   </td>
@@ -82,8 +94,8 @@ export function PackageDetailPage() {
           <div className="flex items-center justify-between">
             <EntityLink
               to={`/shipments/${shipment.shipmentId}`}
-              label={shipment.shipmentNo}
-              sublabel={`${shipment.origin} → ${shipment.destination}`}
+              label={`${shipment.origin} → ${shipment.destination}`}
+              sublabel={shipment.shipmentNo}
             />
             <StatusBadge status={shipment.status} />
           </div>

@@ -10,7 +10,7 @@ import * as fx from "@/data/fixtures";
 
 interface DraftLine {
   id: number;
-  productId: string | null;
+  variantId: string | null;
   quantity: number;
   price: number;
 }
@@ -24,16 +24,23 @@ interface CreatePurchaseDrawerProps {
 }
 
 const factoryOptions = fx.factories.map((f) => ({ value: f.factoryId, label: f.name }));
-const productOptions = fx.products.map((p) => ({ value: p.productId, label: p.name, sublabel: p.productCode }));
+const variantOptions = fx.productVariants.map((v) => {
+  const product = fx.products.find((p) => p.productId === v.productId);
+  return {
+    value: v.variantId,
+    label: v.color ? `${product?.name ?? "Unknown"} · ${v.color}` : product?.name ?? "Unknown",
+    sublabel: product?.productCode,
+  };
+});
 
 export function CreatePurchaseDrawer({ open, onClose, onCreated }: CreatePurchaseDrawerProps) {
   const toast = useToast();
   const [factoryId, setFactoryId] = useState<string | null>(null);
-  const [lines, setLines] = useState<DraftLine[]>([{ id: lineId++, productId: null, quantity: 1, price: 0 }]);
+  const [lines, setLines] = useState<DraftLine[]>([{ id: lineId++, variantId: null, quantity: 1, price: 0 }]);
   const [submitting, setSubmitting] = useState(false);
 
   function addLine() {
-    setLines((prev) => [...prev, { id: lineId++, productId: null, quantity: 1, price: 0 }]);
+    setLines((prev) => [...prev, { id: lineId++, variantId: null, quantity: 1, price: 0 }]);
   }
 
   function removeLine(id: number) {
@@ -46,10 +53,10 @@ export function CreatePurchaseDrawer({ open, onClose, onCreated }: CreatePurchas
 
   function reset() {
     setFactoryId(null);
-    setLines([{ id: lineId++, productId: null, quantity: 1, price: 0 }]);
+    setLines([{ id: lineId++, variantId: null, quantity: 1, price: 0 }]);
   }
 
-  const canSubmit = factoryId && lines.some((l) => l.productId && l.quantity > 0);
+  const canSubmit = factoryId && lines.some((l) => l.variantId && l.quantity > 0);
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -106,9 +113,9 @@ export function CreatePurchaseDrawer({ open, onClose, onCreated }: CreatePurchas
             {lines.map((line) => (
               <div key={line.id} className="grid grid-cols-[1fr,88px,80px,24px] items-center gap-1.5">
                 <EntitySelector
-                  options={productOptions}
-                  value={line.productId}
-                  onChange={(v) => updateLine(line.id, { productId: v })}
+                  options={variantOptions}
+                  value={line.variantId}
+                  onChange={(v) => updateLine(line.id, { variantId: v })}
                   placeholder="Select product"
                 />
                 <QuantityInput

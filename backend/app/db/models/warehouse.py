@@ -6,7 +6,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
-    from app.db.models.product import Product
+    from app.db.models.delivery import DeliveryItem
+    from app.db.models.product import ProductVariant
     from app.db.models.receiving import Receiving
     from app.db.models.sales import OrderItem
 
@@ -28,16 +29,19 @@ class Inventory(Base):
     warehouse_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("warehouses.warehouse_id"), nullable=False
     )
-    product_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("products.product_id"), nullable=False
+    variant_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("product_variants.variant_id"), nullable=False
     )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
     reserved_quantity: Mapped[int] = mapped_column(
         Integer, nullable=False, server_default=text("0")
     )
+    incoming_quantity: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("0")
+    )
 
     warehouse: Mapped["Warehouse"] = relationship(back_populates="inventory_rows")
-    product: Mapped["Product"] = relationship(back_populates="inventory_rows")
+    variant: Mapped["ProductVariant"] = relationship(back_populates="inventory_rows")
     stock_allocations: Mapped[list["StockAllocation"]] = relationship(back_populates="inventory")
 
 
@@ -55,3 +59,4 @@ class StockAllocation(Base):
 
     order_item: Mapped["OrderItem"] = relationship(back_populates="stock_allocations")
     inventory: Mapped["Inventory"] = relationship(back_populates="stock_allocations")
+    delivery_items: Mapped[list["DeliveryItem"]] = relationship(back_populates="stock_allocation")

@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, Date, ForeignKey, Numeric, String
+from sqlalchemy import BigInteger, Date, ForeignKey, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -58,5 +58,11 @@ class TransportationLeg(Base):
     arrival_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     transport_cost: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     status: Mapped[str] = mapped_column(String, nullable=False)
+
+    checked_by: Mapped[str | None] = mapped_column(String, nullable=True)
+    checked_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    packages_expected: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    packages_verified: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    check_notes: Mapped[str | None] = mapped_column(String, nullable=True)
 
     shipment: Mapped["Shipment"] = relationship(back_populates="legs")

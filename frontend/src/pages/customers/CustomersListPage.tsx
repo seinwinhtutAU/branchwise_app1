@@ -1,5 +1,6 @@
 import React from "react";
 import { Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -10,6 +11,7 @@ import type { Customer } from "@/data/types";
 import { useListQuery } from "@/hooks/useListQuery";
 
 export function CustomersListPage() {
+  const navigate = useNavigate();
   const list = useListQuery<Customer>({ key: "customers", fetcher: listCustomers });
 
   const columns: DataTableColumn<Customer>[] = [
@@ -32,6 +34,7 @@ export function CustomersListPage() {
         data={list.data?.rows ?? []}
         rowKey={(c) => c.customerId}
         loading={list.isLoading}
+        onRowClick={(c) => navigate(`/customers/${c.customerId}`)}
         emptyState={<EmptyState icon={Users} title="No customers found" description="Try a different search." />}
       />
 

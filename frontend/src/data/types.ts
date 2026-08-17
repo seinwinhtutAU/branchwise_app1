@@ -28,12 +28,21 @@ export interface Customer {
   address: string | null;
 }
 
+// A style/design, identified by productCode. Not directly orderable — see
+// ProductVariant, which is the color/group combination that actually gets
+// ordered, purchased, stocked, received, and delivered.
 export interface Product {
   productId: string;
   productCode: string;
   name: string;
+}
+
+// color/groupName may both be unset when a variant isn't split that way.
+export interface ProductVariant {
+  variantId: string;
+  productId: string;
   color: string | null;
-  size: string | null;
+  groupName: string | null;
 }
 
 export interface Factory {
@@ -47,6 +56,13 @@ export interface Warehouse {
   name: string;
 }
 
+// Current rate to convert 1 unit of currencyCode into the base reporting
+// currency (MMK). Global and single-valued, not a historical time series.
+export interface ExchangeRate {
+  currencyCode: string;
+  rateToBase: number;
+}
+
 export interface Order {
   orderId: string;
   orderNo: string;
@@ -55,12 +71,13 @@ export interface Order {
   source: string | null;
   status: OrderStatus;
   totalAmount: number;
+  currencyCode: string;
 }
 
 export interface OrderItem {
   orderItemId: string;
   orderId: string;
-  productId: string;
+  variantId: string;
   quantity: number;
   price: number;
 }
@@ -71,12 +88,13 @@ export interface Purchase {
   factoryId: string;
   purchaseDate: string;
   status: PurchaseStatus;
+  currencyCode: string;
 }
 
 export interface PurchaseItem {
   purchaseItemId: string;
   purchaseId: string;
-  productId: string;
+  variantId: string;
   quantity: number;
   buyingPrice: number;
 }
@@ -132,6 +150,15 @@ export interface TransportationLeg {
   arrivalDate: string | null;
   transportCost: number | null;
   status: TransportationLegStatus;
+  // Checkpoint verification for goods arriving at this leg's destination.
+  // Shipments are a straight line, so this lives on the leg rather than a
+  // separate receiving-style entity — Receiving stays reserved for arrivals
+  // at a real warehouse (see Receiving).
+  checkedBy: string | null;
+  checkedDate: string | null;
+  packagesExpected: number | null;
+  packagesVerified: number | null;
+  checkNotes: string | null;
 }
 
 export interface Receiving {
@@ -145,7 +172,7 @@ export interface Receiving {
 export interface ReceivingItem {
   receivingItemId: string;
   receivingId: string;
-  productId: string;
+  variantId: string;
   quantityExpected: number;
   quantityReceived: number;
 }
@@ -153,7 +180,7 @@ export interface ReceivingItem {
 export interface Inventory {
   inventoryId: string;
   warehouseId: string;
-  productId: string;
+  variantId: string;
   quantity: number;
   reservedQuantity: number;
   incomingQuantity: number;
@@ -169,13 +196,22 @@ export interface StockAllocation {
 export interface Delivery {
   deliveryId: string;
   orderId: string;
-  deliveryDate: string;
+  // expectedDeliveryDate is the target set when scheduling. deliveryDate is
+  // only filled in once the delivery is actually confirmed — it isn't a
+  // promise, so the two are tracked separately (mirrors Shipment.expectedArrival).
+  expectedDeliveryDate: string | null;
+  deliveryDate: string | null;
   status: DeliveryStatus;
 }
 
+// Exactly one of stockAllocationId / purchaseAllocationId is set, depending
+// on how this line was fulfilled: from warehouse stock, or shipped straight
+// from a purchase to the customer without ever passing through a warehouse.
 export interface DeliveryItem {
   deliveryItemId: string;
   deliveryId: string;
-  productId: string;
+  variantId: string;
   quantity: number;
+  stockAllocationId: string | null;
+  purchaseAllocationId: string | null;
 }

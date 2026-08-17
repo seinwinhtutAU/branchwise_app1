@@ -68,6 +68,11 @@ export const transportationLegs: TransportationLeg[] = [
     arrivalDate: "2026-08-06",
     transportCost: 450,
     status: "completed",
+    checkedBy: "Thiri (Yangon warehouse)",
+    checkedDate: "2026-08-06",
+    packagesExpected: 1,
+    packagesVerified: 1,
+    checkNotes: null,
   },
 
   {
@@ -81,6 +86,11 @@ export const transportationLegs: TransportationLeg[] = [
     arrivalDate: "2026-08-17",
     transportCost: 120,
     status: "completed",
+    checkedBy: "Somchai (border agent)",
+    checkedDate: "2026-08-17",
+    packagesExpected: 1,
+    packagesVerified: 1,
+    checkNotes: "Customs cleared, no issues.",
   },
   {
     legId: "LEG-001-2",
@@ -93,6 +103,11 @@ export const transportationLegs: TransportationLeg[] = [
     arrivalDate: null,
     transportCost: 260,
     status: "in_transit",
+    checkedBy: null,
+    checkedDate: null,
+    packagesExpected: null,
+    packagesVerified: null,
+    checkNotes: null,
   },
 
   {
@@ -106,6 +121,11 @@ export const transportationLegs: TransportationLeg[] = [
     arrivalDate: null,
     transportCost: 380,
     status: "delayed",
+    checkedBy: null,
+    checkedDate: null,
+    packagesExpected: null,
+    packagesVerified: null,
+    checkNotes: null,
   },
 
   {
@@ -119,6 +139,11 @@ export const transportationLegs: TransportationLeg[] = [
     arrivalDate: "2026-08-09",
     transportCost: 900,
     status: "completed",
+    checkedBy: "Thiri (Yangon warehouse)",
+    checkedDate: "2026-08-09",
+    packagesExpected: 1,
+    packagesVerified: 1,
+    checkNotes: null,
   },
 
   {
@@ -132,5 +157,10 @@ export const transportationLegs: TransportationLeg[] = [
     arrivalDate: "2026-08-11",
     transportCost: 620,
     status: "completed",
+    checkedBy: "Narin (Bangkok warehouse)",
+    checkedDate: "2026-08-11",
+    packagesExpected: 1,
+    packagesVerified: 1,
+    checkNotes: null,
   },
 ];

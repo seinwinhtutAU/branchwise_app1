@@ -9,6 +9,7 @@ import { FilterBar, FilterSelect } from "@/components/ui/FilterBar";
 import { Pagination } from "@/components/ui/Pagination";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import * as fx from "@/data/fixtures";
 import { listDeliveries, type DeliveryListRow, type DeliverySort } from "@/data/repository";
 import { useListQuery } from "@/hooks/useListQuery";
 import { formatDate } from "@/lib/format";
@@ -20,6 +21,8 @@ const STATUS_OPTIONS = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
+const CUSTOMER_OPTIONS = fx.customers.map((c) => ({ value: c.customerId, label: c.name }));
+
 export function DeliveriesListPage() {
   const navigate = useNavigate();
   const list = useListQuery<DeliveryListRow, DeliverySort>({
@@ -30,19 +33,35 @@ export function DeliveriesListPage() {
 
   const columns: DataTableColumn<DeliveryListRow>[] = [
     {
-      id: "deliveryId",
-      header: "Delivery",
-      cell: (r) => <span className="font-medium text-neutral-800">{r.delivery.deliveryId}</span>,
+      id: "customer",
+      header: "Customer",
+      cell: (r) => (
+        <div>
+          <p className="font-medium text-neutral-800">{r.customer.name}</p>
+          <p className="text-xs text-neutral-400">{r.delivery.deliveryId}</p>
+        </div>
+      ),
     },
     {
       id: "order",
       header: "Order",
       cell: (r) => <EntityLink to={`/orders/${r.order.orderId}`} label={r.order.orderNo} />,
     },
-    { id: "customer", header: "Customer", cell: (r) => r.customer.name },
     { id: "products", header: "Products", cell: (r) => `${r.productCount} products` },
     { id: "status", header: "Status", sortable: true, cell: (r) => <StatusBadge status={r.delivery.status} /> },
-    { id: "deliveryDate", header: "Date", sortable: true, cell: (r) => formatDate(r.delivery.deliveryDate) },
+    {
+      id: "deliveryDate",
+      header: "Date",
+      sortable: true,
+      cell: (r) =>
+        r.delivery.deliveryDate ? (
+          formatDate(r.delivery.deliveryDate)
+        ) : r.delivery.expectedDeliveryDate ? (
+          <span className="text-neutral-400">Expected {formatDate(r.delivery.expectedDeliveryDate)}</span>
+        ) : (
+          "—"
+        ),
+    },
   ];
 
   return (
@@ -55,6 +74,12 @@ export function DeliveriesListPage() {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <SearchBar value={list.search} onChange={list.setSearch} placeholder="Search deliveries..." className="w-72" />
         <FilterBar>
+          <FilterSelect
+            label="Customer"
+            value={list.filters.customerId}
+            options={CUSTOMER_OPTIONS}
+            onChange={(v) => list.setFilter("customerId", v)}
+          />
           <FilterSelect
             label="Status"
             value={list.filters.status}

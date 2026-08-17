@@ -58,8 +58,8 @@ export function OrderDetailPage() {
       <DetailHeader
         backTo="/orders"
         backLabel="Orders"
-        title={order.orderNo}
-        subtitle={customer.name}
+        title={customer.name}
+        code={order.orderNo}
         status={<StatusBadge status={order.status} />}
         meta={
           attention && (
@@ -140,8 +140,8 @@ export function OrderDetailPage() {
                       <p className="font-medium text-neutral-800">{row.product.name}</p>
                       <p className="text-xs text-neutral-400">
                         {row.product.productCode}
-                        {row.product.color ? ` · ${row.product.color}` : ""}
-                        {row.product.size ? ` · ${row.product.size}` : ""}
+                        {row.variant.color ? ` · ${row.variant.color}` : ""}
+                        {row.variant.groupName ? ` · ${row.variant.groupName}` : ""}
                       </p>
                     </td>
                     <td className="px-4 py-2.5 text-right text-neutral-700">{row.ordered}</td>
@@ -152,9 +152,11 @@ export function OrderDetailPage() {
                       )}
                     </td>
                     <td className="px-4 py-2.5 text-right text-neutral-700">{row.delivered}</td>
-                    <td className="px-4 py-2.5 text-right text-neutral-500">{formatCurrency(row.item.price)}</td>
+                    <td className="px-4 py-2.5 text-right text-neutral-500">
+                      {formatCurrency(row.item.price, order.currencyCode)}
+                    </td>
                     <td className="px-4 py-2.5 text-right font-medium text-neutral-800">
-                      {formatCurrency(row.item.price * row.item.quantity)}
+                      {formatCurrency(row.item.price * row.item.quantity, order.currencyCode)}
                     </td>
                   </tr>
                   {isExpanded && (
@@ -193,7 +195,7 @@ export function OrderDetailPage() {
                 Order Total
               </td>
               <td className="px-4 py-2.5 text-right font-semibold text-neutral-900">
-                {formatCurrency(order.totalAmount)}
+                {formatCurrency(order.totalAmount, order.currencyCode)}
               </td>
             </tr>
           </tfoot>
@@ -210,7 +212,13 @@ export function OrderDetailPage() {
             ))}
             {deliveries.map((delivery) => (
               <div key={delivery.deliveryId} className="flex items-center gap-2">
-                <span className="text-xs text-neutral-400">Delivered on {formatDateLong(delivery.deliveryDate)}</span>
+                <span className="text-xs text-neutral-400">
+                  {delivery.deliveryDate
+                    ? `Delivered on ${formatDateLong(delivery.deliveryDate)}`
+                    : delivery.expectedDeliveryDate
+                      ? `Expected ${formatDateLong(delivery.expectedDeliveryDate)}`
+                      : "Not yet scheduled"}
+                </span>
                 <DeliveryChainRow delivery={delivery} />
               </div>
             ))}

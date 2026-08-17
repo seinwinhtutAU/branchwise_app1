@@ -35,12 +35,15 @@ export function OrdersListPage() {
 
   const columns: DataTableColumn<OrderListRow>[] = [
     {
-      id: "orderNo",
-      header: "Order",
-      sortable: true,
-      cell: (r) => <span className="font-medium text-neutral-800">{r.order.orderNo}</span>,
+      id: "customer",
+      header: "Customer",
+      cell: (r) => (
+        <div>
+          <p className="font-medium text-neutral-800">{r.customer.name}</p>
+          <p className="text-xs text-neutral-400">{r.order.orderNo}</p>
+        </div>
+      ),
     },
-    { id: "customer", header: "Customer", cell: (r) => r.customer.name },
     { id: "products", header: "Products", cell: (r) => `${r.productCount} products` },
     {
       id: "status",
@@ -61,7 +64,7 @@ export function OrdersListPage() {
       header: "Total",
       sortable: true,
       align: "right",
-      cell: (r) => formatCurrency(r.order.totalAmount),
+      cell: (r) => formatCurrency(r.order.totalAmount, r.order.currencyCode),
     },
   ];
 
@@ -133,7 +136,10 @@ function OrderItemsPreview({ orderId }: { orderId: string }) {
       <tbody>
         {rows.map((row) => (
           <tr key={row.item.orderItemId} className="border-t border-neutral-150">
-            <td className="py-1.5 font-medium text-neutral-700">{row.product.name}</td>
+            <td className="py-1.5 font-medium text-neutral-700">
+              {row.product.name}
+              {row.variant.color ? ` · ${row.variant.color}` : ""}
+            </td>
             <td className="py-1.5 text-right text-neutral-600">{row.ordered}</td>
             <td className="py-1.5 text-right text-neutral-600">{row.purchased}</td>
             <td className="py-1.5 text-right text-neutral-600">{row.delivered}</td>

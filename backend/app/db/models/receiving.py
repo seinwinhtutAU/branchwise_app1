@@ -8,7 +8,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.db.models.logistics import Shipment
-    from app.db.models.product import Product
+    from app.db.models.product import ProductVariant
     from app.db.models.warehouse import Warehouse
 
 
@@ -39,8 +39,8 @@ class ReceivingItem(Base):
     receiving_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("receiving.receiving_id"), nullable=False
     )
-    product_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("products.product_id"), nullable=False
+    variant_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("product_variants.variant_id"), nullable=False
     )
     quantity_expected: Mapped[int] = mapped_column(Integer, nullable=False)
     quantity_received: Mapped[int] = mapped_column(
@@ -48,4 +48,4 @@ class ReceivingItem(Base):
     )
 
     receiving: Mapped["Receiving"] = relationship(back_populates="items")
-    product: Mapped["Product"] = relationship(back_populates="receiving_items")
+    variant: Mapped["ProductVariant"] = relationship(back_populates="receiving_items")

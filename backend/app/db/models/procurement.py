@@ -8,9 +8,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.db.models.currency import ExchangeRate
+    from app.db.models.delivery import DeliveryItem
     from app.db.models.factory import Factory
     from app.db.models.packaging import PackageItem
-    from app.db.models.product import Product
+    from app.db.models.product import ProductVariant
     from app.db.models.sales import OrderItem
 
 
@@ -24,9 +26,13 @@ class Purchase(Base):
     )
     purchase_date: Mapped[date] = mapped_column(Date, nullable=False)
     status: Mapped[str] = mapped_column(String, nullable=False)
+    currency_code: Mapped[str] = mapped_column(
+        String(3), ForeignKey("exchange_rates.currency_code"), nullable=False
+    )
 
     factory: Mapped["Factory"] = relationship(back_populates="purchases")
     items: Mapped[list["PurchaseItem"]] = relationship(back_populates="purchase")
+    currency: Mapped["ExchangeRate"] = relationship(back_populates="purchases")
 
 
 class PurchaseItem(Base):
@@ -36,14 +42,14 @@ class PurchaseItem(Base):
     purchase_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("purchases.purchase_id"), nullable=False
     )
-    product_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("products.product_id"), nullable=False
+    variant_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("product_variants.variant_id"), nullable=False
     )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     buying_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
 
     purchase: Mapped["Purchase"] = relationship(back_populates="items")
-    product: Mapped["Product"] = relationship(back_populates="purchase_items")
+    variant: Mapped["ProductVariant"] = relationship(back_populates="purchase_items")
     allocations: Mapped[list["PurchaseAllocation"]] = relationship(back_populates="purchase_item")
 
 
@@ -62,3 +68,6 @@ class PurchaseAllocation(Base):
     purchase_item: Mapped["PurchaseItem"] = relationship(back_populates="allocations")
     order_item: Mapped["OrderItem"] = relationship(back_populates="purchase_allocations")
     package_items: Mapped[list["PackageItem"]] = relationship(back_populates="allocation")
+    delivery_items: Mapped[list["DeliveryItem"]] = relationship(
+        back_populates="purchase_allocation"
+    )

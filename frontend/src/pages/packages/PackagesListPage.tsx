@@ -4,12 +4,13 @@ import { useNavigate } from "react-router-dom";
 
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { EntityLink } from "@/components/ui/EntityLink";
 import { FilterBar, FilterSelect } from "@/components/ui/FilterBar";
 import { Pagination } from "@/components/ui/Pagination";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import * as fx from "@/data/fixtures";
 import { listPackages, type PackageListRow, type PackageSort } from "@/data/repository";
+import { getFactory } from "@/data/selectors";
 import { useListQuery } from "@/hooks/useListQuery";
 
 const STATUS_OPTIONS = [
@@ -17,6 +18,14 @@ const STATUS_OPTIONS = [
   { value: "ready", label: "Ready" },
   { value: "shipped", label: "Shipped" },
 ];
+
+const CUSTOMER_OPTIONS = fx.customers.map((c) => ({ value: c.customerId, label: c.name }));
+
+function summarizeNames(names: string[], emptyLabel: string): string {
+  if (names.length === 0) return emptyLabel;
+  if (names.length <= 2) return names.join(" & ");
+  return `${names[0]} & ${names.length - 1} more`;
+}
 
 export function PackagesListPage() {
   const navigate = useNavigate();
@@ -28,23 +37,33 @@ export function PackagesListPage() {
 
   const columns: DataTableColumn<PackageListRow>[] = [
     {
-      id: "packageNo",
-      header: "Package",
-      sortable: true,
-      cell: (r) => <span className="font-medium text-neutral-800">{r.pkg.packageNo}</span>,
+      id: "customers",
+      header: "For",
+      cell: (r) => (
+        <div>
+          <p className="font-medium text-neutral-800">
+            {summarizeNames(
+              r.customers.map((c) => c.name),
+              "No items packed yet",
+            )}
+          </p>
+          <p className="text-xs text-neutral-400">{r.pkg.packageNo}</p>
+        </div>
+      ),
     },
     {
       id: "purchases",
-      header: "From Purchase(s)",
+      header: "From Factory",
       cell: (r) =>
         r.purchases.length === 0 ? (
           <span className="text-neutral-400">—</span>
         ) : (
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            {r.purchases.map((p) => (
-              <EntityLink key={p.purchaseId} to={`/purchases/${p.purchaseId}`} label={p.purchaseNo} />
-            ))}
-          </div>
+          <span className="text-neutral-600">
+            {summarizeNames(
+              r.purchases.map((p) => getFactory(p.factoryId)?.name ?? p.purchaseNo),
+              "",
+            )}
+          </span>
         ),
     },
     { id: "products", header: "Products", cell: (r) => `${r.productCount} products` },
@@ -62,6 +81,12 @@ export function PackagesListPage() {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <SearchBar value={list.search} onChange={list.setSearch} placeholder="Search packages..." className="w-72" />
         <FilterBar>
+          <FilterSelect
+            label="Customer"
+            value={list.filters.customerId}
+            options={CUSTOMER_OPTIONS}
+            onChange={(v) => list.setFilter("customerId", v)}
+          />
           <FilterSelect
             label="Status"
             value={list.filters.status}

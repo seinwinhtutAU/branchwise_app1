@@ -1,5 +1,5 @@
 import React from "react";
-import { Check } from "lucide-react";
+import { AlertTriangle, Check, ClipboardCheck } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import type { TransportationLeg } from "@/data/types";
@@ -66,13 +66,44 @@ export function RouteTimeline({ legs, finalLabel, finalReached }: RouteTimelineP
     <div className="pl-1">
       {stops.map((stop, i) => {
         const leg = legs[i];
+        const arrivalLeg = legs[i - 1];
         const isLast = i === stops.length - 1;
+        const isChecked = arrivalLeg && (arrivalLeg.checkedBy || arrivalLeg.checkedDate);
+        const hasMismatch =
+          isChecked &&
+          arrivalLeg.packagesExpected != null &&
+          arrivalLeg.packagesVerified != null &&
+          arrivalLeg.packagesVerified !== arrivalLeg.packagesExpected;
         return (
           <div key={`${stop}-${i}`} className="relative pl-6">
             {!isLast && <div className="absolute left-[7px] top-3 h-full w-px bg-neutral-200" />}
             <div className="absolute left-0 top-1 h-4 w-4 rounded-full border-2 border-primary-500 bg-white" />
             <div className="pb-5">
               <p className="text-sm font-medium text-neutral-800">{stop}</p>
+              {isChecked && (
+                <div
+                  className={cn(
+                    "mt-1 flex items-center gap-1.5 text-xs",
+                    hasMismatch ? "text-warning-600" : "text-neutral-500",
+                  )}
+                >
+                  {hasMismatch ? (
+                    <AlertTriangle className="h-3 w-3 shrink-0" />
+                  ) : (
+                    <ClipboardCheck className="h-3 w-3 shrink-0" />
+                  )}
+                  <span>
+                    Checked{arrivalLeg.checkedBy ? ` by ${arrivalLeg.checkedBy}` : ""}
+                    {arrivalLeg.checkedDate ? ` on ${formatDate(arrivalLeg.checkedDate)}` : ""}
+                    {arrivalLeg.packagesExpected != null && arrivalLeg.packagesVerified != null
+                      ? ` — ${arrivalLeg.packagesVerified}/${arrivalLeg.packagesExpected} packages verified`
+                      : ""}
+                  </span>
+                </div>
+              )}
+              {isChecked && arrivalLeg.checkNotes && (
+                <p className="mt-0.5 text-xs italic text-neutral-400">{arrivalLeg.checkNotes}</p>
+              )}
               {leg && (
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-neutral-500">
                   <span>{leg.carrier}</span>

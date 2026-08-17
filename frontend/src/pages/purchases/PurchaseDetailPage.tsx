@@ -10,7 +10,12 @@ import { Section } from "@/components/ui/Section";
 import { SkeletonBlock } from "@/components/ui/Skeleton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getPurchaseDetail } from "@/data/repository";
-import { getPurchaseItemOrderBreakdown } from "@/data/selectors";
+import {
+  convertToBase,
+  getCustomer,
+  getPackageItemDetails,
+  getPurchaseItemOrderBreakdown,
+} from "@/data/selectors";
 import { formatCurrency, formatDateLong } from "@/lib/format";
 
 export function PurchaseDetailPage() {
@@ -26,6 +31,8 @@ export function PurchaseDetailPage() {
   if (isError || !data) return <ErrorState title="Unable to load purchase" onRetry={refetch} />;
 
   const { purchase, factory, items, relatedOrders, packages } = data;
+  const totalCost = items.reduce((sum, { item }) => sum + item.buyingPrice * item.quantity, 0);
+  const totalInBase = convertToBase(totalCost, purchase.currencyCode);
 
   function toggle(purchaseItemId: string) {
     setExpanded((prev) => {
@@ -41,8 +48,8 @@ export function PurchaseDetailPage() {
       <DetailHeader
         backTo="/purchases"
         backLabel="Purchases"
-        title={purchase.purchaseNo}
-        subtitle={factory.name}
+        title={factory.name}
+        code={purchase.purchaseNo}
         status={<StatusBadge status={purchase.status} />}
         meta={<span className="text-xs text-neutral-500">Ordered {formatDateLong(purchase.purchaseDate)}</span>}
       />
@@ -65,7 +72,7 @@ export function PurchaseDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {items.map(({ item, product, allocated }) => {
+            {items.map(({ item, product, variant, allocated }) => {
               const breakdown = getPurchaseItemOrderBreakdown(item.purchaseItemId);
               const isExpanded = expanded.has(item.purchaseItemId);
               return (
@@ -86,9 +93,14 @@ export function PurchaseDetailPage() {
                         </button>
                       )}
                     </td>
-                    <td className="px-2 py-2.5 font-medium text-neutral-800">{product.name}</td>
+                    <td className="px-2 py-2.5">
+                      <p className="font-medium text-neutral-800">{product.name}</p>
+                      {variant.color && <p className="text-xs text-neutral-400">{variant.color}</p>}
+                    </td>
                     <td className="px-4 py-2.5 text-right text-neutral-700">{item.quantity}</td>
-                    <td className="px-4 py-2.5 text-right text-neutral-500">{formatCurrency(item.buyingPrice)}</td>
+                    <td className="px-4 py-2.5 text-right text-neutral-500">
+                      {formatCurrency(item.buyingPrice, purchase.currencyCode)}
+                    </td>
                     <td className="px-4 py-2.5 text-right text-neutral-500">
                       {allocated}
                       {breakdown.length > 1 && (
@@ -96,7 +108,7 @@ export function PurchaseDetailPage() {
                       )}
                     </td>
                     <td className="px-4 py-2.5 text-right font-medium text-neutral-800">
-                      {formatCurrency(item.buyingPrice * item.quantity)}
+                      {formatCurrency(item.buyingPrice * item.quantity, purchase.currencyCode)}
                     </td>
                   </tr>
                   {isExpanded && (
@@ -129,20 +141,42 @@ export function PurchaseDetailPage() {
               );
             })}
           </tbody>
+          <tfoot>
+            <tr className="border-t border-neutral-200">
+              <td colSpan={5} className="px-4 py-2.5 text-right text-xs font-medium text-neutral-500">
+                Purchase Total
+              </td>
+              <td className="px-4 py-2.5 text-right">
+                <p className="font-semibold text-neutral-900">
+                  {formatCurrency(totalCost, purchase.currencyCode)}
+                </p>
+                {purchase.currencyCode !== "MMK" && totalInBase != null && (
+                  <p className="text-xs text-neutral-400">≈ {formatCurrency(totalInBase, "MMK")}</p>
+                )}
+              </td>
+            </tr>
+          </tfoot>
         </table>
       </Section>
 
       <div className="grid grid-cols-2 gap-4">
-        <Section title="Related Orders" description="Orders this purchase contributes to">
+        <Section title="Customers" description="Who this purchase's stock is for">
           {relatedOrders.length === 0 ? (
             <p className="text-sm text-neutral-400">No orders linked.</p>
           ) : (
             <div className="space-y-2">
-              {relatedOrders.map((order) => (
-                <div key={order.orderId}>
-                  <EntityLink to={`/orders/${order.orderId}`} label={order.orderNo} />
-                </div>
-              ))}
+              {relatedOrders.map((order) => {
+                const customer = getCustomer(order.customerId);
+                return (
+                  <div key={order.orderId}>
+                    <EntityLink
+                      to={`/orders/${order.orderId}`}
+                      label={customer?.name ?? "Unknown customer"}
+                      sublabel={order.orderNo}
+                    />
+                  </div>
+                );
+              })}
             </div>
           )}
         </Section>
@@ -152,12 +186,21 @@ export function PurchaseDetailPage() {
             <p className="text-sm text-neutral-400">Not packaged yet.</p>
           ) : (
             <div className="space-y-2">
-              {packages.map((pkg) => (
-                <div key={pkg.packageId} className="flex items-center justify-between">
-                  <EntityLink to={`/packages/${pkg.packageId}`} label={pkg.packageNo} />
-                  <StatusBadge status={pkg.status} />
-                </div>
-              ))}
+              {packages.map((pkg) => {
+                const customerNames = Array.from(
+                  new Set(getPackageItemDetails(pkg.packageId).map((d) => d.customer.name)),
+                );
+                return (
+                  <div key={pkg.packageId} className="flex items-center justify-between">
+                    <EntityLink
+                      to={`/packages/${pkg.packageId}`}
+                      label={customerNames.length > 0 ? customerNames.join(", ") : pkg.packageNo}
+                      sublabel={customerNames.length > 0 ? pkg.packageNo : undefined}
+                    />
+                    <StatusBadge status={pkg.status} />
+                  </div>
+                );
+              })}
             </div>
           )}
         </Section>

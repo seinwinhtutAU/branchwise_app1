@@ -6,6 +6,10 @@ interface DetailHeaderProps {
   backTo: string;
   backLabel: string;
   title: string;
+  /** The record's internal reference number (SO-/PO-/PK-/SH-...), shown as
+   * small secondary text next to the title — never the primary heading.
+   * Human context (customer, factory, route, warehouse) belongs in `title`. */
+  code?: string;
   subtitle?: string;
   status?: React.ReactNode;
   actions?: React.ReactNode;
@@ -16,6 +20,7 @@ export function DetailHeader({
   backTo,
   backLabel,
   title,
+  code,
   subtitle,
   status,
   actions,
@@ -35,6 +40,7 @@ export function DetailHeader({
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{title}</h1>
+            {code && <span className="text-sm font-normal text-neutral-400">{code}</span>}
             {status}
           </div>
           {subtitle && <p className="mt-1 text-sm text-neutral-500">{subtitle}</p>}

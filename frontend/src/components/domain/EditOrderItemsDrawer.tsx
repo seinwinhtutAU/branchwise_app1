@@ -34,7 +34,7 @@ export function EditOrderItemsDrawer({ open, onClose, orderId, items, onSaved }:
       setRows(
         items.map((row) => ({
           orderItemId: row.item.orderItemId,
-          productName: row.product.name,
+          productName: row.variant.color ? `${row.product.name} · ${row.variant.color}` : row.product.name,
           minQuantity: Math.max(1, row.delivered),
           quantity: row.ordered,
           price: row.item.price,

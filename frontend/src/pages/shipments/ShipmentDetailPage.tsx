@@ -10,7 +10,7 @@ import { SkeletonBlock } from "@/components/ui/Skeleton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { RouteTimeline } from "@/components/ui/Timeline";
 import { getShipmentDetail } from "@/data/repository";
-import { getPackageItemDetails } from "@/data/selectors";
+import { getPackageItemDetails, getWarehouse } from "@/data/selectors";
 import { formatDateLong } from "@/lib/format";
 
 export function ShipmentDetailPage() {
@@ -31,8 +31,8 @@ export function ShipmentDetailPage() {
       <DetailHeader
         backTo="/shipments"
         backLabel="Shipments"
-        title={shipment.shipmentNo}
-        subtitle={`${shipment.origin} → ${shipment.destination}`}
+        title={`${shipment.origin} → ${shipment.destination}`}
+        code={shipment.shipmentNo}
         status={<StatusBadge status={shipment.status} />}
         meta={
           shipment.expectedArrival && (
@@ -49,15 +49,15 @@ export function ShipmentDetailPage() {
         ) : (
           <div className="divide-y divide-neutral-100">
             {packages.map((pkg) => {
-              const purchaseNos = Array.from(
-                new Set(getPackageItemDetails(pkg.packageId).map((d) => d.purchase.purchaseNo)),
+              const customerNames = Array.from(
+                new Set(getPackageItemDetails(pkg.packageId).map((d) => d.customer.name)),
               );
               return (
                 <div key={pkg.packageId} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
                   <EntityLink
                     to={`/packages/${pkg.packageId}`}
-                    label={pkg.packageNo}
-                    sublabel={purchaseNos.length > 0 ? `from ${purchaseNos.join(", ")}` : undefined}
+                    label={customerNames.length > 0 ? customerNames.join(", ") : pkg.packageNo}
+                    sublabel={customerNames.length > 0 ? pkg.packageNo : undefined}
                   />
                   <StatusBadge status={pkg.status} />
                 </div>
@@ -78,7 +78,11 @@ export function ShipmentDetailPage() {
       {receiving && (
         <Section title="Receiving" className="mt-4">
           <div className="flex items-center justify-between">
-            <EntityLink to={`/receiving/${receiving.receivingId}`} label={receiving.receivingId} sublabel={formatDateLong(receiving.receivedDate)} />
+            <EntityLink
+              to={`/receiving/${receiving.receivingId}`}
+              label={getWarehouse(receiving.warehouseId)?.name ?? receiving.receivingId}
+              sublabel={formatDateLong(receiving.receivedDate)}
+            />
             <StatusBadge status={receiving.status} />
           </div>
         </Section>

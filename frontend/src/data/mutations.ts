@@ -38,7 +38,7 @@ export function updateOrderItems(orderId: string, edits: OrderItemEdit[]): void 
 // ---- deliveries: create from outstanding order items -------------------
 
 export interface DeliveryLine {
-  productId: string;
+  variantId: string;
   quantity: number;
 }
 
@@ -48,7 +48,7 @@ export function getDeliverableItems(orderId: string) {
     .filter((row) => row.outstanding > 0);
 }
 
-export function createDelivery(orderId: string, lines: DeliveryLine[]): string {
+export function createDelivery(orderId: string, expectedDeliveryDate: string, lines: DeliveryLine[]): string {
   const deliveryId = nextSequentialId(
     "DL",
     fx.deliveries.map((d) => d.deliveryId),
@@ -57,8 +57,9 @@ export function createDelivery(orderId: string, lines: DeliveryLine[]): string {
   fx.deliveries.push({
     deliveryId,
     orderId,
-    deliveryDate: todayIso(),
-    status: "delivered",
+    expectedDeliveryDate,
+    deliveryDate: null,
+    status: "pending",
   });
 
   lines
@@ -67,10 +68,21 @@ export function createDelivery(orderId: string, lines: DeliveryLine[]): string {
       fx.deliveryItems.push({
         deliveryItemId: `DLI-${deliveryId.replace("DL-", "")}-${index + 1}`,
         deliveryId,
-        productId: line.productId,
+        variantId: line.variantId,
         quantity: line.quantity,
+        stockAllocationId: null,
+        purchaseAllocationId: null,
       });
     });
 
   return deliveryId;
+}
+
+// ---- deliveries: confirm actually delivered -----------------------------
+
+export function markDelivered(deliveryId: string): void {
+  const delivery = fx.deliveries.find((d) => d.deliveryId === deliveryId);
+  if (!delivery) return;
+  delivery.status = "delivered";
+  delivery.deliveryDate = todayIso();
 }

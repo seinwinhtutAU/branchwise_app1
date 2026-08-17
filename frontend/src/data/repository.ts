@@ -9,6 +9,7 @@ import type {
   Order,
   Package,
   Product,
+  ProductVariant,
   Purchase,
   PurchaseItem,
   Receiving,
@@ -132,6 +133,10 @@ export async function listPurchases(
   if (params.filters?.factoryId) {
     rows = rows.filter((r) => r.purchase.factoryId === params.filters!.factoryId);
   }
+  if (params.filters?.customerId) {
+    const purchaseIds = new Set(sel.getCustomerPurchases(params.filters.customerId).map((p) => p.purchaseId));
+    rows = rows.filter((r) => purchaseIds.has(r.purchase.purchaseId));
+  }
   if (params.search) {
     rows = rows.filter((r) => matchesSearch([r.purchase.purchaseNo, r.factory.name], params.search!));
   }
@@ -148,7 +153,7 @@ export async function listPurchases(
 export interface PurchaseDetail {
   purchase: Purchase;
   factory: Factory;
-  items: Array<{ item: PurchaseItem; product: Product; allocated: number }>;
+  items: Array<{ item: PurchaseItem; product: Product; variant: ProductVariant; allocated: number }>;
   relatedOrders: Order[];
   packages: Package[];
 }
@@ -160,13 +165,17 @@ export async function getPurchaseDetail(purchaseId: string): Promise<PurchaseDet
 
   const items = fx.purchaseItems
     .filter((i) => i.purchaseId === purchaseId)
-    .map((item) => ({
-      item,
-      product: sel.getProduct(item.productId)!,
-      allocated: fx.purchaseAllocations
-        .filter((a) => a.purchaseItemId === item.purchaseItemId)
-        .reduce((s, a) => s + a.quantity, 0),
-    }));
+    .map((item) => {
+      const variant = sel.getVariant(item.variantId)!;
+      return {
+        item,
+        product: sel.getProduct(variant.productId)!,
+        variant,
+        allocated: fx.purchaseAllocations
+          .filter((a) => a.purchaseItemId === item.purchaseItemId)
+          .reduce((s, a) => s + a.quantity, 0),
+      };
+    });
 
   const orderItemIds = fx.purchaseAllocations
     .filter((a) => items.some((i) => i.item.purchaseItemId === a.purchaseItemId))
@@ -190,6 +199,7 @@ export async function getPurchaseDetail(purchaseId: string): Promise<PurchaseDet
 export interface PackageListRow {
   pkg: Package;
   purchases: Purchase[];
+  customers: Customer[];
   productCount: number;
   totalQuantity: number;
 }
@@ -204,10 +214,12 @@ export async function listPackages(
   let rows: PackageListRow[] = fx.packages.map((pkg) => {
     const details = sel.getPackageItemDetails(pkg.packageId);
     const purchases = Array.from(new Map(details.map((d) => [d.purchase.purchaseId, d.purchase])).values());
+    const customers = Array.from(new Map(details.map((d) => [d.customer.customerId, d.customer])).values());
     const productCount = new Set(details.map((d) => d.product.productId)).size;
     return {
       pkg,
       purchases,
+      customers,
       productCount,
       totalQuantity: details.reduce((s, d) => s + d.quantity, 0),
     };
@@ -216,9 +228,15 @@ export async function listPackages(
   if (params.filters?.status) {
     rows = rows.filter((r) => r.pkg.status === params.filters!.status);
   }
+  if (params.filters?.customerId) {
+    rows = rows.filter((r) => r.customers.some((c) => c.customerId === params.filters!.customerId));
+  }
   if (params.search) {
     rows = rows.filter((r) =>
-      matchesSearch([r.pkg.packageNo, ...r.purchases.map((p) => p.purchaseNo)], params.search!),
+      matchesSearch(
+        [r.pkg.packageNo, ...r.purchases.map((p) => p.purchaseNo), ...r.customers.map((c) => c.name)],
+        params.search!,
+      ),
     );
   }
 
@@ -357,7 +375,7 @@ export interface ReceivingDetail {
   receiving: Receiving;
   shipment: Shipment;
   warehouse: Warehouse;
-  items: Array<{ item: ReceivingItem; product: Product }>;
+  items: Array<{ item: ReceivingItem; product: Product; variant: ProductVariant }>;
 }
 
 export async function getReceivingDetail(receivingId: string): Promise<ReceivingDetail | undefined> {
@@ -365,9 +383,10 @@ export async function getReceivingDetail(receivingId: string): Promise<Receiving
   const receiving = sel.getReceiving(receivingId);
   if (!receiving) return undefined;
 
-  const items = fx.receivingItems
-    .filter((i) => i.receivingId === receivingId)
-    .map((item) => ({ item, product: sel.getProduct(item.productId)! }));
+  const items = fx.receivingItems.filter((i) => i.receivingId === receivingId).map((item) => {
+    const variant = sel.getVariant(item.variantId)!;
+    return { item, product: sel.getProduct(variant.productId)!, variant };
+  });
 
   return {
     receiving,
@@ -406,6 +425,9 @@ export async function listDeliveries(
   if (params.filters?.status) {
     rows = rows.filter((r) => r.delivery.status === params.filters!.status);
   }
+  if (params.filters?.customerId) {
+    rows = rows.filter((r) => r.customer.customerId === params.filters!.customerId);
+  }
   if (params.search) {
     rows = rows.filter((r) =>
       matchesSearch([r.delivery.deliveryId, r.order.orderNo, r.customer.name], params.search!),
@@ -413,7 +435,7 @@ export async function listDeliveries(
   }
 
   rows = sortRows(rows, params.sort, params.sortDir, {
-    deliveryDate: (r) => r.delivery.deliveryDate,
+    deliveryDate: (r) => r.delivery.deliveryDate ?? r.delivery.expectedDeliveryDate ?? "",
     status: (r) => r.delivery.status,
   });
 
@@ -424,7 +446,7 @@ export interface DeliveryDetail {
   delivery: Delivery;
   order: Order;
   customer: Customer;
-  items: Array<{ item: DeliveryItem; product: Product }>;
+  items: Array<{ item: DeliveryItem; product: Product; variant: ProductVariant; source: sel.DeliveryItemSource }>;
 }
 
 export async function getDeliveryDetail(deliveryId: string): Promise<DeliveryDetail | undefined> {
@@ -435,7 +457,15 @@ export async function getDeliveryDetail(deliveryId: string): Promise<DeliveryDet
   const order = sel.getOrder(delivery.orderId)!;
   const items = fx.deliveryItems
     .filter((i) => i.deliveryId === deliveryId)
-    .map((item) => ({ item, product: sel.getProduct(item.productId)! }));
+    .map((item) => {
+      const variant = sel.getVariant(item.variantId)!;
+      return {
+        item,
+        product: sel.getProduct(variant.productId)!,
+        variant,
+        source: sel.getDeliveryItemSource(item),
+      };
+    });
 
   return { delivery, order, customer: sel.getCustomer(order.customerId)!, items };
 }
@@ -504,9 +534,61 @@ export async function listProducts(params: ListParams = {}): Promise<Page<Produc
   await networkDelay();
   let rows = fx.products;
   if (params.search) {
-    rows = rows.filter((p) => matchesSearch([p.name, p.productCode, p.color], params.search!));
+    rows = rows.filter((p) => matchesSearch([p.name, p.productCode], params.search!));
   }
   return paginate(rows, params.page, params.pageSize);
+}
+
+// ===================================================== Customer detail ====
+
+export interface CustomerDetail {
+  customer: Customer;
+  orders: Order[];
+  products: sel.CustomerProductSummary[];
+  purchases: Purchase[];
+  packages: Package[];
+  deliveries: Delivery[];
+}
+
+export async function getCustomerDetail(customerId: string): Promise<CustomerDetail | undefined> {
+  await networkDelay();
+  const customer = fx.customers.find((c) => c.customerId === customerId);
+  if (!customer) return undefined;
+
+  return {
+    customer,
+    orders: sel.getCustomerOrders(customerId),
+    products: sel.getCustomerProducts(customerId),
+    purchases: sel.getCustomerPurchases(customerId),
+    packages: sel.getCustomerPackages(customerId),
+    deliveries: sel.getCustomerDeliveries(customerId),
+  };
+}
+
+// ====================================================== Product detail ====
+
+export interface ProductDetail {
+  product: Product;
+  variants: ProductVariant[];
+  factories: sel.ProductFactorySummary[];
+  orders: sel.ProductOrderSummary[];
+  inventory: sel.InventoryRow[];
+  inTransitShipments: Shipment[];
+}
+
+export async function getProductDetail(productId: string): Promise<ProductDetail | undefined> {
+  await networkDelay();
+  const product = fx.products.find((p) => p.productId === productId);
+  if (!product) return undefined;
+
+  return {
+    product,
+    variants: sel.getVariantsForProduct(productId),
+    factories: sel.getProductFactories(productId),
+    orders: sel.getProductOrders(productId),
+    inventory: sel.getInventoryRows().filter((r) => r.product.productId === productId),
+    inTransitShipments: sel.getProductShipmentsInTransit(productId),
+  };
 }
 
 // ============================================================== Dashboard =

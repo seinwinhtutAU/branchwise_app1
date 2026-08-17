@@ -28,8 +28,9 @@ export function ReceivingDetailPage() {
       <DetailHeader
         backTo="/receiving"
         backLabel="Receiving"
-        title={receiving.receivingId}
-        subtitle={`${warehouse.name} · from ${shipment.shipmentNo}`}
+        title={warehouse.name}
+        code={receiving.receivingId}
+        subtitle={`From shipment ${shipment.origin} → ${shipment.destination}`}
         status={<StatusBadge status={receiving.status} />}
         meta={<span className="text-xs text-neutral-500">Received {formatDateLong(receiving.receivedDate)}</span>}
       />
@@ -44,11 +45,14 @@ export function ReceivingDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {items.map(({ item, product }) => {
+            {items.map(({ item, product, variant }) => {
               const short = item.quantityReceived < item.quantityExpected;
               return (
                 <tr key={item.receivingItemId} className="border-b border-neutral-100 last:border-0">
-                  <td className="px-4 py-2.5 font-medium text-neutral-800">{product.name}</td>
+                  <td className="px-4 py-2.5">
+                    <p className="font-medium text-neutral-800">{product.name}</p>
+                    {variant.color && <p className="text-xs text-neutral-400">{variant.color}</p>}
+                  </td>
                   <td className="px-4 py-2.5 text-right text-neutral-500">{item.quantityExpected}</td>
                   <td className={`px-4 py-2.5 text-right font-medium ${short ? "text-warning-600" : "text-success-700"}`}>
                     {item.quantityReceived}

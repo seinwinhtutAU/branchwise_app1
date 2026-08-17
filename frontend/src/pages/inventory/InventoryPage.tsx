@@ -32,7 +32,10 @@ export function InventoryPage() {
       sortable: true,
       cell: (r) => (
         <div>
-          <p className="font-medium text-neutral-800">{r.product.name}</p>
+          <p className="font-medium text-neutral-800">
+            {r.product.name}
+            {r.variant.color ? ` · ${r.variant.color}` : ""}
+          </p>
           <p className="text-xs text-neutral-400">{r.product.productCode}</p>
         </div>
       ),

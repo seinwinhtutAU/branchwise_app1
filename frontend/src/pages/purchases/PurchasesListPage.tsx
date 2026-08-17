@@ -23,6 +23,7 @@ const STATUS_OPTIONS = [
 ];
 
 const FACTORY_OPTIONS = fx.factories.map((f) => ({ value: f.factoryId, label: f.name }));
+const CUSTOMER_OPTIONS = fx.customers.map((c) => ({ value: c.customerId, label: c.name }));
 
 export function PurchasesListPage() {
   const navigate = useNavigate();
@@ -35,15 +36,23 @@ export function PurchasesListPage() {
 
   const columns: DataTableColumn<PurchaseListRow>[] = [
     {
-      id: "purchaseNo",
-      header: "Purchase",
-      sortable: true,
-      cell: (r) => <span className="font-medium text-neutral-800">{r.purchase.purchaseNo}</span>,
+      id: "factory",
+      header: "Factory",
+      cell: (r) => (
+        <div>
+          <p className="font-medium text-neutral-800">{r.factory.name}</p>
+          <p className="text-xs text-neutral-400">{r.purchase.purchaseNo}</p>
+        </div>
+      ),
     },
-    { id: "factory", header: "Factory", cell: (r) => r.factory.name },
     { id: "products", header: "Products", cell: (r) => `${r.productCount} products` },
     { id: "quantity", header: "Quantity", align: "right", cell: (r) => r.totalQuantity },
-    { id: "cost", header: "Cost", align: "right", cell: (r) => formatCurrency(r.totalCost) },
+    {
+      id: "cost",
+      header: "Cost",
+      align: "right",
+      cell: (r) => formatCurrency(r.totalCost, r.purchase.currencyCode),
+    },
     { id: "status", header: "Status", sortable: true, cell: (r) => <StatusBadge status={r.purchase.status} /> },
     { id: "purchaseDate", header: "Date", sortable: true, cell: (r) => formatDate(r.purchase.purchaseDate) },
   ];
@@ -64,16 +73,22 @@ export function PurchasesListPage() {
         <SearchBar value={list.search} onChange={list.setSearch} placeholder="Search purchases..." className="w-72" />
         <FilterBar>
           <FilterSelect
-            label="Status"
-            value={list.filters.status}
-            options={STATUS_OPTIONS}
-            onChange={(v) => list.setFilter("status", v)}
+            label="Customer"
+            value={list.filters.customerId}
+            options={CUSTOMER_OPTIONS}
+            onChange={(v) => list.setFilter("customerId", v)}
           />
           <FilterSelect
             label="Factory"
             value={list.filters.factoryId}
             options={FACTORY_OPTIONS}
             onChange={(v) => list.setFilter("factoryId", v)}
+          />
+          <FilterSelect
+            label="Status"
+            value={list.filters.status}
+            options={STATUS_OPTIONS}
+            onChange={(v) => list.setFilter("status", v)}
           />
         </FilterBar>
       </div>

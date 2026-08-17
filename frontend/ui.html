@@ -1,0 +1,1761 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wholesale Operations Console</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: "#f0f7ff",
+                100: "#e0effe",
+                500: "#0284c7",
+                600: "#0369a1",
+                700: "#075985",
+                900: "#0c4a6e",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      /* Custom scrollbars & smooth transitions */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .tab-active {
+        border-bottom: 2px solid #0284c7;
+        color: #0284c7;
+        font-weight: 600;
+      }
+      .nav-item-active {
+        background-color: #f1f5f9;
+        color: #0f172a;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-slate-100 text-slate-800 font-sans antialiased h-screen flex flex-col overflow-hidden"
+  >
+    <!-- Top Navigation Header -->
+    <header
+      class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shrink-0 z-20"
+    >
+      <!-- Brand & Organization -->
+      <div class="flex items-center space-x-4">
+        <div
+          class="bg-brand-600 text-white p-2 rounded-lg font-bold flex items-center space-x-2"
+        >
+          <i data-lucide="box" class="w-5 h-5"></i>
+          <span class="tracking-wide text-sm">APEX WHOLESALE</span>
+        </div>
+        <div class="h-6 w-px bg-slate-200"></div>
+        <span
+          class="text-xs font-semibold uppercase tracking-wider text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full"
+        >
+          SE Asia Hub
+        </span>
+      </div>
+
+      <!-- Intelligent Human-Language Global Search -->
+      <div class="flex-1 max-w-2xl mx-8">
+        <div class="relative">
+          <i
+            data-lucide="search"
+            class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+          ></i>
+          <input
+            type="text"
+            placeholder="Search by customer, product, route, status ('orders ready for collection', 'ABC Trading', 'Blue Shirt')..."
+            class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-12 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition"
+          />
+          <div
+            class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-1"
+          >
+            <kbd
+              class="px-1.5 py-0.5 text-[10px] font-medium text-slate-400 bg-slate-200 rounded"
+              >⌘K</kbd
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- User Profile & Global Quick Actions -->
+      <div class="flex items-center space-x-3">
+        <button
+          class="relative p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+        >
+          <i data-lucide="bell" class="w-5 h-5"></i>
+          <span
+            class="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full"
+          ></span>
+        </button>
+        <div class="h-6 w-px bg-slate-200"></div>
+        <div class="flex items-center space-x-3 pl-2">
+          <div
+            class="w-8 h-8 rounded-full bg-slate-700 text-white font-medium text-xs flex items-center justify-center"
+          >
+            KY
+          </div>
+          <div class="text-left hidden md:block">
+            <div class="text-xs font-semibold text-slate-800">Khin Mg</div>
+            <div class="text-[11px] text-slate-500">Ops Coordinator</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- Sidebar Navigation (Operational Modules) -->
+      <aside
+        class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0"
+      >
+        <div class="p-3 space-y-1">
+          <div
+            class="px-3 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+          >
+            Workspaces
+          </div>
+
+          <button
+            onclick="switchView('dashboard')"
+            id="nav-dashboard"
+            class="nav-btn nav-item-active w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition"
+          >
+            <div class="flex items-center space-x-3">
+              <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+              <span>Today's Ops</span>
+            </div>
+            <span
+              class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded-full"
+              >12</span
+            >
+          </button>
+
+          <button
+            onclick="switchView('orders')"
+            id="nav-orders"
+            class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition"
+          >
+            <div class="flex items-center space-x-3">
+              <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+              <span>Customer Orders</span>
+            </div>
+          </button>
+
+          <button
+            onclick="switchView('purchasing')"
+            id="nav-purchasing"
+            class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition"
+          >
+            <div class="flex items-center space-x-3">
+              <i data-lucide="factory" class="w-4 h-4"></i>
+              <span>Purchasing</span>
+            </div>
+            <span
+              class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full"
+              >Needs Buy</span
+            >
+          </button>
+
+          <button
+            onclick="switchView('shipments')"
+            id="nav-shipments"
+            class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition"
+          >
+            <div class="flex items-center space-x-3">
+              <i data-lucide="truck" class="w-4 h-4"></i>
+              <span>Shipments & Routes</span>
+            </div>
+          </button>
+
+          <button
+            onclick="switchView('receiving')"
+            id="nav-receiving"
+            class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition"
+          >
+            <div class="flex items-center space-x-3">
+              <i data-lucide="package-check" class="w-4 h-4"></i>
+              <span>Receiving</span>
+            </div>
+            <span
+              class="bg-emerald-100 text-emerald-800 text-xs font-medium px-2 py-0.5 rounded-full"
+              >Arriving</span
+            >
+          </button>
+
+          <button
+            onclick="switchView('inventory')"
+            id="nav-inventory"
+            class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition"
+          >
+            <div class="flex items-center space-x-3">
+              <i data-lucide="warehouse" class="w-4 h-4"></i>
+              <span>Stock & Warehouses</span>
+            </div>
+          </button>
+
+          <button
+            onclick="switchView('delivery')"
+            id="nav-delivery"
+            class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition"
+          >
+            <div class="flex items-center space-x-3">
+              <i data-lucide="hand-metal" class="w-4 h-4"></i>
+              <span>Collection & Delivery</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Contextual Operational Legend -->
+        <div
+          class="p-4 m-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2"
+        >
+          <div
+            class="text-xs font-bold text-slate-600 flex items-center justify-between"
+          >
+            <span>Operational Mindset</span>
+            <i data-lucide="info" class="w-3.5 h-3.5 text-slate-400"></i>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-relaxed">
+            UI strictly presents human business entities. Database IDs (<span
+              class="font-mono text-[10px]"
+              >SO-1024</span
+            >) are relegated to secondary metadata.
+          </p>
+        </div>
+      </aside>
+
+      <!-- Dynamic Main Content Area -->
+      <main class="flex-1 overflow-y-auto p-8 bg-slate-100" id="main-content">
+        <!-- ================= VIEW 1: TODAY'S OPERATIONS DASHBOARD ================= -->
+        <div id="view-dashboard" class="space-y-6">
+          <!-- Greeting & System Context -->
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900">
+                Good morning, Khin
+              </h1>
+              <p class="text-sm text-slate-500">
+                Here is what needs your manual intervention today.
+              </p>
+            </div>
+            <div class="flex space-x-3">
+              <span
+                class="inline-flex items-center text-xs font-medium text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm"
+              >
+                <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
+                Yangon Hub Operational
+              </span>
+            </div>
+          </div>
+
+          <!-- Section: Actionable Directives ("Needs Attention") -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm"
+          >
+            <h2
+              class="text-base font-bold text-slate-800 mb-4 flex items-center space-x-2"
+            >
+              <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500"></i>
+              <span>Needs Attention Today</span>
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <!-- Action Card 1 -->
+              <div
+                onclick="switchView('purchasing')"
+                class="group p-4 bg-amber-50 hover:bg-amber-100/70 border border-amber-200 rounded-xl cursor-pointer transition"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-2xl font-black text-amber-900">12</span>
+                  <span
+                    class="text-xs font-semibold bg-amber-200/60 text-amber-900 px-2 py-0.5 rounded-md"
+                    >Orders</span
+                  >
+                </div>
+                <div
+                  class="font-medium text-sm text-amber-900 group-hover:underline flex items-center justify-between"
+                >
+                  <span>Need purchasing</span>
+                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+                <p class="text-xs text-amber-700/80 mt-1">
+                  240 total units unallocated to suppliers
+                </p>
+              </div>
+
+              <!-- Action Card 2 -->
+              <div
+                onclick="switchView('receiving')"
+                class="group p-4 bg-blue-50 hover:bg-blue-100/70 border border-blue-200 rounded-xl cursor-pointer transition"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-2xl font-black text-blue-900">4</span>
+                  <span
+                    class="text-xs font-semibold bg-blue-200/60 text-blue-900 px-2 py-0.5 rounded-md"
+                    >Shipments</span
+                  >
+                </div>
+                <div
+                  class="font-medium text-sm text-blue-900 group-hover:underline flex items-center justify-between"
+                >
+                  <span>Arriving today</span>
+                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+                <p class="text-xs text-blue-700/80 mt-1">
+                  Thailand → Yangon route
+                </p>
+              </div>
+
+              <!-- Action Card 3 -->
+              <div
+                onclick="switchView('delivery')"
+                class="group p-4 bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-200 rounded-xl cursor-pointer transition"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-2xl font-black text-emerald-900">3</span>
+                  <span
+                    class="text-xs font-semibold bg-emerald-200/60 text-emerald-900 px-2 py-0.5 rounded-md"
+                    >Customers</span
+                  >
+                </div>
+                <div
+                  class="font-medium text-sm text-emerald-900 group-hover:underline flex items-center justify-between"
+                >
+                  <span>Ready for collection</span>
+                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+                <p class="text-xs text-emerald-700/80 mt-1">
+                  Stored at Yangon Main Whse
+                </p>
+              </div>
+
+              <!-- Action Card 4 -->
+              <div
+                onclick="switchView('shipments')"
+                class="group p-4 bg-rose-50 hover:bg-rose-100/70 border border-rose-200 rounded-xl cursor-pointer transition"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-2xl font-black text-rose-900">2</span>
+                  <span
+                    class="text-xs font-semibold bg-rose-200/60 text-rose-900 px-2 py-0.5 rounded-md"
+                    >Delays</span
+                  >
+                </div>
+                <div
+                  class="font-medium text-sm text-rose-900 group-hover:underline flex items-center justify-between"
+                >
+                  <span>Border delays</span>
+                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+                <p class="text-xs text-rose-700/80 mt-1">
+                  Truck clearance pending
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Real-world Order Pipeline View -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4"
+          >
+            <h2 class="text-base font-bold text-slate-800">
+              Active Pipeline Overview
+            </h2>
+
+            <div class="grid grid-cols-5 gap-3 text-center">
+              <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-2xl font-bold text-slate-800">24</div>
+                <div
+                  class="text-xs font-semibold text-slate-500 uppercase mt-1"
+                >
+                  Need Purchasing
+                </div>
+              </div>
+              <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-2xl font-bold text-slate-800">18</div>
+                <div
+                  class="text-xs font-semibold text-slate-500 uppercase mt-1"
+                >
+                  Being Prepared
+                </div>
+              </div>
+              <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-2xl font-bold text-slate-800">12</div>
+                <div
+                  class="text-xs font-semibold text-slate-500 uppercase mt-1"
+                >
+                  In Transit
+                </div>
+              </div>
+              <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-2xl font-bold text-slate-800">8</div>
+                <div
+                  class="text-xs font-semibold text-slate-500 uppercase mt-1"
+                >
+                  Arrived Hub
+                </div>
+              </div>
+              <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-2xl font-bold text-slate-800">5</div>
+                <div
+                  class="text-xs font-semibold text-slate-500 uppercase mt-1"
+                >
+                  Ready for Customer
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= VIEW 2: HUMAN-FIRST ORDERS LIST ================= -->
+        <div id="view-orders" class="hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900">
+                Active Customer Orders
+              </h1>
+              <p class="text-sm text-slate-500">
+                Track and fulfill customer demands by operational status.
+              </p>
+            </div>
+            <button
+              class="bg-brand-600 hover:bg-brand-700 text-white font-medium px-4 py-2 rounded-lg text-sm flex items-center space-x-2 transition"
+            >
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>New Customer Order</span>
+            </button>
+          </div>
+
+          <!-- Operational Filters -->
+          <div class="flex items-center space-x-2 overflow-x-auto pb-1">
+            <button
+              class="px-3 py-1.5 bg-slate-900 text-white font-medium text-xs rounded-lg"
+            >
+              All Active (42)
+            </button>
+            <button
+              class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-50"
+            >
+              Needs Purchasing (12)
+            </button>
+            <button
+              class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-50"
+            >
+              In Transit (14)
+            </button>
+            <button
+              class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-50"
+            >
+              Arriving Today (4)
+            </button>
+            <button
+              class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-50"
+            >
+              Ready for Collection (8)
+            </button>
+          </div>
+
+          <!-- Humanized Order Cards Table -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"
+          >
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr
+                  class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+                >
+                  <th class="py-3 px-4">Customer & Summary</th>
+                  <th class="py-3 px-4">Products Requested</th>
+                  <th class="py-3 px-4">Operational Status</th>
+                  <th class="py-3 px-4">Next Operational Action</th>
+                  <th class="py-3 px-4 text-right">View Detail</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 text-sm">
+                <!-- Row 1 -->
+                <tr class="hover:bg-slate-50/80 transition">
+                  <td class="py-4 px-4">
+                    <div class="font-bold text-slate-900 text-base">
+                      ABC Trading
+                    </div>
+                    <div class="text-xs text-slate-500 mt-0.5">
+                      8 products · 240 units
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-mono mt-1">
+                      Ref: SO-1024 · Ordered Aug 16
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="space-y-1">
+                      <div class="text-xs font-medium text-slate-700">
+                        Blue Shirt (100), Black Pants (50)
+                      </div>
+                      <div class="text-xs text-slate-400">
+                        + 6 other items...
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <span
+                      class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800"
+                    >
+                      🟡 Purchasing (2 items missing)
+                    </span>
+                    <div class="text-xs text-slate-500 mt-1">
+                      1 shipment already in transit
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <button
+                      onclick="switchView('purchasing')"
+                      class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                    >
+                      Purchase Missing Items
+                    </button>
+                  </td>
+                  <td class="py-4 px-4 text-right">
+                    <button
+                      onclick="switchView('order-detail')"
+                      class="text-brand-600 hover:text-brand-800 font-medium text-xs"
+                    >
+                      View Workspace →
+                    </button>
+                  </td>
+                </tr>
+
+                <!-- Row 2 -->
+                <tr class="hover:bg-slate-50/80 transition">
+                  <td class="py-4 px-4">
+                    <div class="font-bold text-slate-900 text-base">
+                      XYZ Shop
+                    </div>
+                    <div class="text-xs text-slate-500 mt-0.5">
+                      4 products · 80 units
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-mono mt-1">
+                      Ref: SO-1028 · Ordered Aug 15
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="text-xs font-medium text-slate-700">
+                      Red Shirt (50), Denim Shorts (30)
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <span
+                      class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800"
+                    >
+                      🔵 In Transit (Thailand → Yangon)
+                    </span>
+                    <div class="text-xs text-slate-500 mt-1">
+                      Arriving Today
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <button
+                      onclick="switchView('receiving')"
+                      class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                    >
+                      Track Shipment
+                    </button>
+                  </td>
+                  <td class="py-4 px-4 text-right">
+                    <button
+                      onclick="switchView('order-detail')"
+                      class="text-brand-600 hover:text-brand-800 font-medium text-xs"
+                    >
+                      View Workspace →
+                    </button>
+                  </td>
+                </tr>
+
+                <!-- Row 3 -->
+                <tr class="hover:bg-slate-50/80 transition">
+                  <td class="py-4 px-4">
+                    <div class="font-bold text-slate-900 text-base">
+                      Mingalar Store
+                    </div>
+                    <div class="text-xs text-slate-500 mt-0.5">
+                      12 products · 320 units
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-mono mt-1">
+                      Ref: SO-1019 · Ordered Aug 12
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="text-xs font-medium text-slate-700">
+                      Cotton Socks (200), Jackets (120)
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <span
+                      class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800"
+                    >
+                      🟢 Ready for Collection
+                    </span>
+                    <div class="text-xs text-slate-500 mt-1">
+                      Yangon Main Warehouse
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <button
+                      onclick="switchView('delivery')"
+                      class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                    >
+                      Notify Customer / Handover
+                    </button>
+                  </td>
+                  <td class="py-4 px-4 text-right">
+                    <button
+                      onclick="switchView('order-detail')"
+                      class="text-brand-600 hover:text-brand-800 font-medium text-xs"
+                    >
+                      View Workspace →
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ================= VIEW 3: WORKSPACE - ORDER DETAIL ================= -->
+        <div id="view-order-detail" class="hidden space-y-6">
+          <!-- Header Breadcrumbs -->
+          <div class="flex items-center space-x-2 text-xs text-slate-500">
+            <button onclick="switchView('orders')" class="hover:underline">
+              Orders
+            </button>
+            <span>/</span>
+            <span class="font-medium text-slate-800">ABC Trading</span>
+          </div>
+
+          <!-- Primary Identity Banner -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+          >
+            <div>
+              <div class="flex items-center space-x-3">
+                <h1 class="text-2xl font-black text-slate-900">ABC Trading</h1>
+                <span
+                  class="text-xs font-mono bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded"
+                  >Ref: SO-1024</span
+                >
+              </div>
+              <p class="text-sm text-slate-500 mt-1">
+                8 products · 240 units ordered · Placed Aug 16, 2026
+              </p>
+            </div>
+
+            <div class="flex space-x-3">
+              <button
+                class="bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold transition"
+              >
+                Print Pickup Slip
+              </button>
+              <button
+                onclick="switchView('purchasing')"
+                class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
+              >
+                Purchase Outstanding (2 Items)
+              </button>
+            </div>
+          </div>
+
+          <!-- Real-World Fulfillment Journey Tracker -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm"
+          >
+            <h3
+              class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6"
+            >
+              Real-World Order Progress
+            </h3>
+
+            <div class="relative flex items-center justify-between">
+              <!-- Line overlay -->
+              <div
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 z-0"
+              ></div>
+              <div
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-3/5 h-1 bg-brand-500 z-0"
+              ></div>
+
+              <!-- Steps -->
+              <div
+                class="relative z-10 flex flex-col items-center bg-white px-2"
+              >
+                <div
+                  class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs"
+                >
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                </div>
+                <span class="text-xs font-semibold text-slate-800 mt-2"
+                  >Ordered</span
+                >
+                <span class="text-[10px] text-slate-400">Aug 16</span>
+              </div>
+
+              <div
+                class="relative z-10 flex flex-col items-center bg-white px-2"
+              >
+                <div
+                  class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs"
+                >
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                </div>
+                <span class="text-xs font-semibold text-slate-800 mt-2"
+                  >Purchased</span
+                >
+                <span class="text-[10px] text-slate-400">Aug 16</span>
+              </div>
+
+              <div
+                class="relative z-10 flex flex-col items-center bg-white px-2"
+              >
+                <div
+                  class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs"
+                >
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                </div>
+                <span class="text-xs font-semibold text-slate-800 mt-2"
+                  >Packed</span
+                >
+                <span class="text-[10px] text-slate-400">Aug 17</span>
+              </div>
+
+              <div
+                class="relative z-10 flex flex-col items-center bg-white px-2"
+              >
+                <div
+                  class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xs ring-4 ring-brand-100"
+                >
+                  ●
+                </div>
+                <span class="text-xs font-bold text-brand-700 mt-2"
+                  >Shipping</span
+                >
+                <span class="text-[10px] text-brand-600">In Transit</span>
+              </div>
+
+              <div
+                class="relative z-10 flex flex-col items-center bg-white px-2"
+              >
+                <div
+                  class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs"
+                >
+                  ○
+                </div>
+                <span class="text-xs font-medium text-slate-400 mt-2"
+                  >Arrived</span
+                >
+                <span class="text-[10px] text-slate-400">Expected Aug 18</span>
+              </div>
+
+              <div
+                class="relative z-10 flex flex-col items-center bg-white px-2"
+              >
+                <div
+                  class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs"
+                >
+                  ○
+                </div>
+                <span class="text-xs font-medium text-slate-400 mt-2"
+                  >Ready for Collection</span
+                >
+                <span class="text-[10px] text-slate-400">Pending</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Products Table with Granular Physical Breakdown -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"
+          >
+            <div
+              class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-700 text-sm"
+            >
+              Product Breakdown & Physical Location
+            </div>
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr
+                  class="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50"
+                >
+                  <th class="py-3 px-4">Product Name & Variant</th>
+                  <th class="py-3 px-4 text-center">Ordered</th>
+                  <th class="py-3 px-4 text-center">Purchased</th>
+                  <th class="py-3 px-4 text-center">In Transit</th>
+                  <th class="py-3 px-4 text-center">Ready at Hub</th>
+                  <th class="py-3 px-4">Status / Action Required</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 text-sm">
+                <tr>
+                  <td class="py-3.5 px-4 font-medium text-slate-800">
+                    Blue Shirt
+                    <span class="text-xs text-slate-500">/ Size L</span>
+                  </td>
+                  <td class="py-3.5 px-4 text-center font-semibold">100</td>
+                  <td
+                    class="py-3.5 px-4 text-center text-emerald-600 font-semibold"
+                  >
+                    100
+                  </td>
+                  <td
+                    class="py-3.5 px-4 text-center text-blue-600 font-semibold"
+                  >
+                    100
+                  </td>
+                  <td class="py-3.5 px-4 text-center text-slate-400">0</td>
+                  <td class="py-3.5 px-4">
+                    <span
+                      class="text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded"
+                      >On truck from Thailand</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-3.5 px-4 font-medium text-slate-800">
+                    Black Pants
+                    <span class="text-xs text-slate-500">/ Size M</span>
+                  </td>
+                  <td class="py-3.5 px-4 text-center font-semibold">50</td>
+                  <td
+                    class="py-3.5 px-4 text-center text-amber-600 font-semibold"
+                  >
+                    30
+                  </td>
+                  <td
+                    class="py-3.5 px-4 text-center text-blue-600 font-semibold"
+                  >
+                    30
+                  </td>
+                  <td class="py-3.5 px-4 text-center text-slate-400">0</td>
+                  <td class="py-3.5 px-4">
+                    <span
+                      class="text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded"
+                      >20 units still need purchasing</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-3.5 px-4 font-medium text-slate-800">
+                    Red Shirt
+                    <span class="text-xs text-slate-500">/ Size S</span>
+                  </td>
+                  <td class="py-3.5 px-4 text-center font-semibold">90</td>
+                  <td
+                    class="py-3.5 px-4 text-center text-emerald-600 font-semibold"
+                  >
+                    90
+                  </td>
+                  <td class="py-3.5 px-4 text-center text-slate-400">0</td>
+                  <td
+                    class="py-3.5 px-4 text-center text-emerald-600 font-semibold"
+                  >
+                    90
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <span
+                      class="text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded"
+                      >Stored at Yangon Whse</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ================= VIEW 4: PURCHASING (BY PRODUCT REQUIREMENTS) ================= -->
+        <div id="view-purchasing" class="hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900">
+                Purchasing Requirements
+              </h1>
+              <p class="text-sm text-slate-500">
+                What needs to be bought from factories right now to fulfill
+                customer orders?
+              </p>
+            </div>
+          </div>
+
+          <!-- Bulk Factory Purchasing Interface -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4"
+          >
+            <div
+              class="flex items-center justify-between border-b border-slate-200 pb-4"
+            >
+              <div class="flex items-center space-x-3">
+                <span class="text-sm font-bold text-slate-700"
+                  >Select Target Factory:</span
+                >
+                <select
+                  class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                >
+                  <option>Factory A (Bangkok Textile Co.)</option>
+                  <option>Factory B (Mandalay Apparel)</option>
+                </select>
+              </div>
+              <button
+                class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition flex items-center space-x-2"
+              >
+                <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                <span>Create Factory Purchase (Selected Items)</span>
+              </button>
+            </div>
+
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr
+                  class="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50"
+                >
+                  <th class="py-3 px-4 w-8">
+                    <input type="checkbox" checked class="rounded" />
+                  </th>
+                  <th class="py-3 px-4">Product Needed</th>
+                  <th class="py-3 px-4">Ordered By (Customer)</th>
+                  <th class="py-3 px-4 text-center">Quantity Needed</th>
+                  <th class="py-3 px-4">Suggested Factory</th>
+                  <th class="py-3 px-4">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 text-sm">
+                <tr>
+                  <td class="py-3.5 px-4">
+                    <input type="checkbox" checked class="rounded" />
+                  </td>
+                  <td class="py-3.5 px-4 font-bold text-slate-800">
+                    Blue Shirt / Size L
+                  </td>
+                  <td class="py-3.5 px-4 font-medium text-slate-600">
+                    ABC Trading
+                  </td>
+                  <td class="py-3.5 px-4 text-center font-bold text-amber-600">
+                    100 units
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <span
+                      class="bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded-md font-medium"
+                      >Factory A</span
+                    >
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <button
+                      class="text-brand-600 font-semibold hover:underline text-xs"
+                    >
+                      Assign Alternate Factory
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-3.5 px-4">
+                    <input type="checkbox" checked class="rounded" />
+                  </td>
+                  <td class="py-3.5 px-4 font-bold text-slate-800">
+                    Black Pants / Size M
+                  </td>
+                  <td class="py-3.5 px-4 font-medium text-slate-600">
+                    XYZ Shop
+                  </td>
+                  <td class="py-3.5 px-4 text-center font-bold text-amber-600">
+                    50 units
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <span
+                      class="bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded-md font-medium"
+                      >Factory B</span
+                    >
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <button
+                      class="text-brand-600 font-semibold hover:underline text-xs"
+                    >
+                      Assign Alternate Factory
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-3.5 px-4">
+                    <input type="checkbox" checked class="rounded" />
+                  </td>
+                  <td class="py-3.5 px-4 font-bold text-slate-800">
+                    Red Shirt / Size S
+                  </td>
+                  <td class="py-3.5 px-4 font-medium text-slate-600">
+                    Mingalar Store
+                  </td>
+                  <td class="py-3.5 px-4 text-center font-bold text-amber-600">
+                    80 units
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <span
+                      class="bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded-md font-medium"
+                      >Factory A</span
+                    >
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <button
+                      class="text-brand-600 font-semibold hover:underline text-xs"
+                    >
+                      Assign Alternate Factory
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ================= VIEW 5: SHIPMENTS BY ROUTE (HUMAN LOGISTICS) ================= -->
+        <div id="view-shipments" class="hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900">
+                Shipment Routes & Journey Tracking
+              </h1>
+              <p class="text-sm text-slate-500">
+                Track physical inventory movements across logistics corridors.
+              </p>
+            </div>
+          </div>
+
+          <!-- Active Routes Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Route Card 1 -->
+            <div
+              class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4"
+            >
+              <div
+                class="flex items-center justify-between border-b border-slate-100 pb-3"
+              >
+                <div class="flex items-center space-x-2">
+                  <i data-lucide="map-pin" class="w-5 h-5 text-brand-600"></i>
+                  <h3 class="text-lg font-bold text-slate-900">
+                    Thailand → Yangon
+                  </h3>
+                </div>
+                <span
+                  class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center space-x-1"
+                >
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span>Arriving Today</span>
+                </span>
+              </div>
+
+              <div
+                class="grid grid-cols-3 gap-2 text-center bg-slate-50 p-3 rounded-lg text-xs"
+              >
+                <div>
+                  <span class="text-slate-400 block">Packages</span>
+                  <span class="font-bold text-slate-800 text-sm"
+                    >12 packages</span
+                  >
+                </div>
+                <div>
+                  <span class="text-slate-400 block">Customers</span>
+                  <span class="font-bold text-slate-800 text-sm"
+                    >8 customers</span
+                  >
+                </div>
+                <div>
+                  <span class="text-slate-400 block">Total Quantity</span>
+                  <span class="font-bold text-slate-800 text-sm"
+                    >320 units</span
+                  >
+                </div>
+              </div>
+
+              <!-- Mini Visual Route -->
+              <div class="space-y-2 pt-2">
+                <div
+                  class="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                >
+                  Current Leg Progress
+                </div>
+                <div
+                  class="flex items-center justify-between text-xs text-slate-600"
+                >
+                  <span>Thailand Whse (Done)</span>
+                  <span>→</span>
+                  <span>Border (Done)</span>
+                  <span>→</span>
+                  <span class="font-bold text-brand-600"
+                    >Yangon (Arriving)</span
+                  >
+                </div>
+              </div>
+
+              <!-- Real-World Splitting Context -->
+              <div
+                class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 space-y-1"
+              >
+                <div class="font-bold flex items-center justify-between">
+                  <span>Route Splitting at Border</span>
+                  <i data-lucide="git-fork" class="w-4 h-4 text-amber-700"></i>
+                </div>
+                <p>
+                  3 packages (190 units) are separating at Yangon to continue
+                  onwards to Mandalay.
+                </p>
+              </div>
+
+              <button
+                onclick="switchView('shipment-detail')"
+                class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2 rounded-lg text-xs transition"
+              >
+                View Detailed Route Workspace & Split Details →
+              </button>
+            </div>
+
+            <!-- Route Card 2 -->
+            <div
+              class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4"
+            >
+              <div
+                class="flex items-center justify-between border-b border-slate-100 pb-3"
+              >
+                <div class="flex items-center space-x-2">
+                  <i data-lucide="map-pin" class="w-5 h-5 text-brand-600"></i>
+                  <h3 class="text-lg font-bold text-slate-900">
+                    Thailand → Mandalay
+                  </h3>
+                </div>
+                <span
+                  class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center space-x-1"
+                >
+                  <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                  <span>In Transit</span>
+                </span>
+              </div>
+
+              <div
+                class="grid grid-cols-3 gap-2 text-center bg-slate-50 p-3 rounded-lg text-xs"
+              >
+                <div>
+                  <span class="text-slate-400 block">Packages</span>
+                  <span class="font-bold text-slate-800 text-sm"
+                    >8 packages</span
+                  >
+                </div>
+                <div>
+                  <span class="text-slate-400 block">Customers</span>
+                  <span class="font-bold text-slate-800 text-sm"
+                    >3 customers</span
+                  >
+                </div>
+                <div>
+                  <span class="text-slate-400 block">Total Quantity</span>
+                  <span class="font-bold text-slate-800 text-sm"
+                    >190 units</span
+                  >
+                </div>
+              </div>
+
+              <div class="space-y-2 pt-2">
+                <div
+                  class="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                >
+                  Current Leg Progress
+                </div>
+                <div
+                  class="flex items-center justify-between text-xs text-slate-600"
+                >
+                  <span>Thailand Whse</span>
+                  <span>→</span>
+                  <span class="font-bold text-blue-600">Border Customs</span>
+                  <span>→</span>
+                  <span>Mandalay</span>
+                </div>
+              </div>
+
+              <button
+                onclick="switchView('shipment-detail')"
+                class="w-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-medium py-2 rounded-lg text-xs transition"
+              >
+                View Detailed Route Workspace →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= VIEW 6: WORKSPACE - SHIPMENT DETAIL (WITH SPLITTING) ================= -->
+        <div id="view-shipment-detail" class="hidden space-y-6">
+          <div class="flex items-center space-x-2 text-xs text-slate-500">
+            <button onclick="switchView('shipments')" class="hover:underline">
+              Shipment Routes
+            </button>
+            <span>/</span>
+            <span class="font-medium text-slate-800">Thailand → Yangon</span>
+          </div>
+
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex items-center justify-between"
+          >
+            <div>
+              <h1 class="text-2xl font-black text-slate-900">
+                Thailand → Yangon Corridor
+              </h1>
+              <p class="text-sm text-slate-500 mt-1">
+                12 total packages · 320 units · 8 destination customers
+              </p>
+            </div>
+            <span
+              class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold"
+              >Arriving Today</span
+            >
+          </div>
+
+          <!-- Physical Journey Stepper -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm"
+          >
+            <h3
+              class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4"
+            >
+              Journey Checklist
+            </h3>
+            <div class="grid grid-cols-3 gap-4">
+              <div
+                class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center space-x-3"
+              >
+                <i
+                  data-lucide="check-circle-2"
+                  class="w-5 h-5 text-emerald-600"
+                ></i>
+                <div>
+                  <div class="text-xs font-bold text-slate-800">
+                    Thailand Warehouse
+                  </div>
+                  <div class="text-[11px] text-slate-500">Departed Aug 15</div>
+                </div>
+              </div>
+              <div
+                class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center space-x-3"
+              >
+                <i
+                  data-lucide="check-circle-2"
+                  class="w-5 h-5 text-emerald-600"
+                ></i>
+                <div>
+                  <div class="text-xs font-bold text-slate-800">
+                    Border Customs Clearance
+                  </div>
+                  <div class="text-[11px] text-slate-500">Cleared Aug 16</div>
+                </div>
+              </div>
+              <div
+                class="p-3 bg-brand-50 border border-brand-200 rounded-lg flex items-center space-x-3"
+              >
+                <i data-lucide="truck" class="w-5 h-5 text-brand-600"></i>
+                <div>
+                  <div class="text-xs font-bold text-brand-900">
+                    Yangon Central Hub
+                  </div>
+                  <div class="text-[11px] text-brand-700">
+                    Arriving Today (Pending Unload)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Route Splitting Visualization Container -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6"
+          >
+            <div
+              class="flex items-center justify-between border-b border-slate-200 pb-4"
+            >
+              <div>
+                <h3 class="text-base font-bold text-slate-800">
+                  Packages Arrived & Branching Directions
+                </h3>
+                <p class="text-xs text-slate-500">
+                  How goods are distributed upon arrival at Yangon Central Hub.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Branch A: Staying in Yangon -->
+              <div
+                class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3"
+              >
+                <div class="flex items-center justify-between">
+                  <span
+                    class="font-bold text-sm text-slate-800 flex items-center space-x-2"
+                  >
+                    <i
+                      data-lucide="warehouse"
+                      class="w-4 h-4 text-emerald-600"
+                    ></i>
+                    <span>Offloading at Yangon (Ready for Customers)</span>
+                  </span>
+                  <span
+                    class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded"
+                    >9 packages · 230 units</span
+                  >
+                </div>
+
+                <div class="space-y-2">
+                  <div
+                    class="p-2.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between text-xs"
+                  >
+                    <div>
+                      <div class="font-bold text-slate-800">ABC Trading</div>
+                      <div class="text-slate-400">3 packages · 80 units</div>
+                    </div>
+                    <span class="text-emerald-600 font-semibold"
+                      >Ready to Notify</span
+                    >
+                  </div>
+                  <div
+                    class="p-2.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between text-xs"
+                  >
+                    <div>
+                      <div class="font-bold text-slate-800">XYZ Shop</div>
+                      <div class="text-slate-400">2 packages · 50 units</div>
+                    </div>
+                    <span class="text-emerald-600 font-semibold"
+                      >Ready to Notify</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- Branch B: Splitting and continuing to Mandalay -->
+              <div
+                class="border border-amber-200 rounded-xl p-4 bg-amber-50/30 space-y-3"
+              >
+                <div class="flex items-center justify-between">
+                  <span
+                    class="font-bold text-sm text-amber-900 flex items-center space-x-2"
+                  >
+                    <i
+                      data-lucide="git-fork"
+                      class="w-4 h-4 text-amber-600"
+                    ></i>
+                    <span>Continuing Onward to Mandalay</span>
+                  </span>
+                  <span
+                    class="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded"
+                    >3 packages · 90 units</span
+                  >
+                </div>
+
+                <div
+                  class="p-2.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between text-xs"
+                >
+                  <div>
+                    <div class="font-bold text-slate-800">Mingalar Store</div>
+                    <div class="text-slate-400">3 packages · 90 units</div>
+                  </div>
+                  <span class="text-amber-600 font-semibold"
+                    >Transferring Trucks</span
+                  >
+                </div>
+
+                <button
+                  class="w-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold py-2 rounded-lg text-xs transition"
+                >
+                  Manage Mandalay Branch Leg →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= VIEW 7: RECEIVING (PHYSICAL VERIFICATION) ================= -->
+        <div id="view-receiving" class="hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900">
+                Receiving Verification
+              </h1>
+              <p class="text-sm text-slate-500">
+                Physically count items arriving at Yangon Warehouse today.
+              </p>
+            </div>
+            <button
+              class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition"
+            >
+              Confirm & Log Received Stock
+            </button>
+          </div>
+
+          <!-- Receiving Sheet -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4"
+          >
+            <div
+              class="flex items-center justify-between border-b border-slate-200 pb-3"
+            >
+              <div class="text-sm font-bold text-slate-700">
+                Arriving from:
+                <span class="text-slate-900">Thailand Corridor</span>
+              </div>
+              <div class="text-xs text-slate-500">
+                Expected Total:
+                <span class="font-bold text-slate-800">320 units</span>
+              </div>
+            </div>
+
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr
+                  class="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50"
+                >
+                  <th class="py-3 px-4">Expected Product</th>
+                  <th class="py-3 px-4 text-center">Expected Qty</th>
+                  <th class="py-3 px-4 text-center">Actual Counted Qty</th>
+                  <th class="py-3 px-4">Discrepancy Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 text-sm">
+                <tr>
+                  <td class="py-3.5 px-4 font-bold text-slate-800">
+                    Blue Shirt / Red
+                  </td>
+                  <td class="py-3.5 px-4 text-center font-bold text-slate-700">
+                    100
+                  </td>
+                  <td class="py-3.5 px-4 text-center">
+                    <input
+                      type="number"
+                      value="100"
+                      class="w-20 text-center border border-slate-300 rounded-lg py-1 text-sm font-bold bg-slate-50"
+                    />
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <span
+                      class="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-semibold"
+                      >✓ Exact Match</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-3.5 px-4 font-bold text-slate-800">
+                    Black Pants / M
+                  </td>
+                  <td class="py-3.5 px-4 text-center font-bold text-slate-700">
+                    80
+                  </td>
+                  <td class="py-3.5 px-4 text-center">
+                    <input
+                      type="number"
+                      value="80"
+                      class="w-20 text-center border border-slate-300 rounded-lg py-1 text-sm font-bold bg-slate-50"
+                    />
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <span
+                      class="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-semibold"
+                      >✓ Exact Match</span
+                    >
+                  </td>
+                </tr>
+                <tr class="bg-rose-50/30">
+                  <td class="py-3.5 px-4 font-bold text-slate-800">
+                    Red Shirt / S
+                  </td>
+                  <td class="py-3.5 px-4 text-center font-bold text-slate-700">
+                    90
+                  </td>
+                  <td class="py-3.5 px-4 text-center">
+                    <input
+                      type="number"
+                      value="85"
+                      class="w-20 text-center border border-rose-300 rounded-lg py-1 text-sm font-bold bg-white text-rose-600 focus:ring-2 focus:ring-rose-500"
+                    />
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <span
+                      class="text-xs text-rose-700 bg-rose-100 px-2.5 py-1 rounded-full font-bold"
+                      >⚠ 5 Units Missing</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ================= VIEW 8: INVENTORY (PRODUCT + VARIANT + WAREHOUSE) ================= -->
+        <div id="view-inventory" class="hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900">
+                Inventory & Stock Situations
+              </h1>
+              <p class="text-sm text-slate-500">
+                Live physical quantities organized by product variant and
+                warehouse site.
+              </p>
+            </div>
+          </div>
+
+          <!-- Human Inventory Grid -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"
+          >
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr
+                  class="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50"
+                >
+                  <th class="py-3 px-4">Product Name & Variant</th>
+                  <th class="py-3 px-4">Warehouse Location</th>
+                  <th class="py-3 px-4 text-center">Available Stock</th>
+                  <th class="py-3 px-4 text-center">Reserved for Orders</th>
+                  <th class="py-3 px-4 text-center">Incoming (On Way)</th>
+                  <th class="py-3 px-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 text-sm">
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3.5 px-4 font-bold text-slate-800">
+                    Blue Shirt
+                    <span class="font-normal text-slate-500"
+                      >/ Red Variant</span
+                    >
+                  </td>
+                  <td class="py-3.5 px-4 font-medium text-slate-600">
+                    Yangon Central Whse
+                  </td>
+                  <td
+                    class="py-3.5 px-4 text-center font-bold text-emerald-600"
+                  >
+                    80 units
+                  </td>
+                  <td
+                    class="py-3.5 px-4 text-center font-semibold text-amber-600"
+                  >
+                    20 units
+                  </td>
+                  <td
+                    class="py-3.5 px-4 text-center font-semibold text-blue-600"
+                  >
+                    100 units
+                  </td>
+                  <td class="py-3.5 px-4 text-right">
+                    <button
+                      class="text-brand-600 hover:underline font-semibold text-xs"
+                    >
+                      View Reservations →
+                    </button>
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3.5 px-4 font-bold text-slate-800">
+                    Blue Shirt
+                    <span class="font-normal text-slate-500"
+                      >/ Blue Variant</span
+                    >
+                  </td>
+                  <td class="py-3.5 px-4 font-medium text-slate-600">
+                    Yangon Central Whse
+                  </td>
+                  <td
+                    class="py-3.5 px-4 text-center font-bold text-emerald-600"
+                  >
+                    40 units
+                  </td>
+                  <td
+                    class="py-3.5 px-4 text-center font-semibold text-amber-600"
+                  >
+                    10 units
+                  </td>
+                  <td
+                    class="py-3.5 px-4 text-center font-semibold text-blue-600"
+                  >
+                    50 units
+                  </td>
+                  <td class="py-3.5 px-4 text-right">
+                    <button
+                      class="text-brand-600 hover:underline font-semibold text-xs"
+                    >
+                      View Reservations →
+                    </button>
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3.5 px-4 font-bold text-slate-800">
+                    Black Pants
+                    <span class="font-normal text-slate-500">/ Size M</span>
+                  </td>
+                  <td class="py-3.5 px-4 font-medium text-slate-600">
+                    Bangkok Hub Whse
+                  </td>
+                  <td
+                    class="py-3.5 px-4 text-center font-bold text-emerald-600"
+                  >
+                    120 units
+                  </td>
+                  <td
+                    class="py-3.5 px-4 text-center font-semibold text-amber-600"
+                  >
+                    30 units
+                  </td>
+                  <td
+                    class="py-3.5 px-4 text-center font-semibold text-slate-400"
+                  >
+                    0 units
+                  </td>
+                  <td class="py-3.5 px-4 text-right">
+                    <button
+                      class="text-brand-600 hover:underline font-semibold text-xs"
+                    >
+                      View Reservations →
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ================= VIEW 9: DELIVERY & COLLECTION ================= -->
+        <div id="view-delivery" class="hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900">
+                Customer Collection & Delivery
+              </h1>
+              <p class="text-sm text-slate-500">
+                Manage handovers for goods currently available at destination
+                hubs.
+              </p>
+            </div>
+          </div>
+
+          <!-- Ready for Pickup Workspace -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+              class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4"
+            >
+              <div
+                class="flex items-center justify-between border-b border-slate-100 pb-3"
+              >
+                <div>
+                  <h3 class="text-lg font-bold text-slate-900">ABC Trading</h3>
+                  <p class="text-xs text-slate-500">
+                    Arrived at Yangon Whse on Aug 17
+                  </p>
+                </div>
+                <span
+                  class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full"
+                  >Ready for Collection</span
+                >
+              </div>
+
+              <div class="space-y-2">
+                <div class="text-xs font-bold text-slate-500 uppercase">
+                  Items Available at Counter
+                </div>
+                <div
+                  class="p-3 bg-slate-50 rounded-lg space-y-1 text-xs font-medium text-slate-700"
+                >
+                  <div class="flex justify-between">
+                    <span>Blue Shirt (Size L)</span
+                    ><span class="font-bold">50 units</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Black Pants (Size M)</span
+                    ><span class="font-bold">20 units</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Red Shirt (Size S)</span
+                    ><span class="font-bold">10 units</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex space-x-3 pt-2">
+                <button
+                  class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg text-xs transition"
+                >
+                  Mark as Collected
+                </button>
+                <button
+                  class="flex-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-semibold py-2 rounded-lg text-xs transition"
+                >
+                  Prepare Dispatch / Delivery
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- JavaScript to handle view switching & Interactive Lucide Icons -->
+    <script>
+      // Initialize Lucide Icons
+      lucide.createIcons();
+
+      // Single-page navigation controller
+      function switchView(viewId) {
+        // Hide all views
+        const views = [
+          "dashboard",
+          "orders",
+          "order-detail",
+          "purchasing",
+          "shipments",
+          "shipment-detail",
+          "receiving",
+          "inventory",
+          "delivery",
+        ];
+        views.forEach((id) => {
+          const el = document.getElementById(`view-${id}`);
+          if (el) el.classList.add("hidden");
+        });
+
+        // Show target view
+        const target = document.getElementById(`view-${viewId}`);
+        if (target) target.classList.remove("hidden");
+
+        // Reset navigation active styles
+        document.querySelectorAll(".nav-btn").forEach((btn) => {
+          btn.classList.remove("nav-item-active");
+          btn.classList.add("text-slate-600");
+        });
+
+        // Highlight active nav item if present
+        const activeNav = document.getElementById(`nav-${viewId}`);
+        if (activeNav) {
+          activeNav.classList.add("nav-item-active");
+          activeNav.classList.remove("text-slate-600");
+        }
+      }
+    </script>
+  </body>
+</html>

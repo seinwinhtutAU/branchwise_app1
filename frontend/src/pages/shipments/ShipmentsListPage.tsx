@@ -29,18 +29,15 @@ export function ShipmentsListPage() {
 
   const columns: DataTableColumn<ShipmentListRow>[] = [
     {
-      id: "shipmentNo",
-      header: "Shipment",
-      sortable: true,
-      cell: (r) => <span className="font-medium text-neutral-800">{r.shipment.shipmentNo}</span>,
-    },
-    {
       id: "route",
       header: "Route",
       cell: (r) => (
-        <span className="text-neutral-600">
-          {r.shipment.origin} <span className="text-neutral-300">→</span> {r.shipment.destination}
-        </span>
+        <div>
+          <p className="font-medium text-neutral-800">
+            {r.shipment.origin} <span className="text-neutral-300">→</span> {r.shipment.destination}
+          </p>
+          <p className="text-xs text-neutral-400">{r.shipment.shipmentNo}</p>
+        </div>
       ),
     },
     { id: "packages", header: "Packages", cell: (r) => r.packageCount },
